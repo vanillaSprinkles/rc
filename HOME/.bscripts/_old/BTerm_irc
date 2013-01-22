@@ -1,0 +1,83 @@
+#!/bin/bash
+
+role="main_irc"
+name="termite_irc"  # def $0
+trans="0.75"
+geom="950x400"
+#place="-+1-+1"
+place="-1-1"
+
+
+
+
+#### if ${role} already open ####
+wids=()
+for wid in $(wmctrl -lp | awk '{print $1}'); do 
+    roles=$(xprop -id $wid WM_WINDOW_ROLE _OB_APP_ROLE | cut -d'"' -f2 | $(which grep) -E "^${role}\$" )
+#    roles=$(xprop -id $wid WM_WINDOW_ROLE _OB_APP_ROLE | $(which grep) -Eo ${role} )
+    if [[ -n $roles ]]; then
+	wids+=("${wid}")
+    fi
+ done
+if [[ ${#wids[@]} -gt 0 ]]; then
+   transset-df -i ${wids[0]}  $trans
+   wmctrl -i -r ${wids[0]} -b add,undecorated
+   wmctrl -i -r ${wids[0]} -t -1
+   wmctrl -i -r ${wids[0]} -N ${name}
+
+   ## get  absolute max resolution
+   arez=($(xrandr -q | $(which grep) -E "[0-9]{3,5}x[0-9]{3,5} *[0-9]{2,3}\.[0-9]{1,2}[*]*\+" | awk '{print $1}' | sed 's/x/ /g'))
+   ax=$(( ${arez[0]} + ${arez[2]} - ${geom//x*} -1 ))
+   if [[ ${arez[1]} -gt ${arez[3]} ]]; then
+   #       ay=$(( ${arez[1]} - ${geom//*x} -1 ))
+       ay=$(( ${arez[1]} - ${geom//*x}  $(echo $place | $(which grep) -Eo "^[-|+][0-9]*")   ))
+   else
+   #       ay=$(( ${arez[3]} - ${geom//*x} -1 ))
+       ay=$(( ${arez[3]} - ${geom//*x}  $(echo $place | $(which grep) -Eo "[-|+][0-9]*$")   ))
+   fi
+   wmctrl -i -r ${wids[0]} -e 0,${ax},${ay},${geom/x/,}
+   exit
+
+   #  split   +|-[0-9]{1-5}   +|-[0-9]{1-5}
+   #      grep -Eo "^[-|+][0-9]*"    #     grep -Eo "[-|+][0-9]*$"
+fi
+#### end if ${role} already open ####
+
+
+#### launch termite ####
+termite --display=:0 --role=${role}  --geometry=${geom}${place} & # --hold &
+sleep .1s
+
+
+#### window effects ####
+# for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
+
+for wid in $(wmctrl -lp | awk '{print $1}'); do 
+    roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
+    if [[ -n $roles ]]; then
+	transset-df -i $wid  $trans
+	wmctrl -i -r $wid -b add,undecorated
+	
+	wmctrl -i -r $wid -t -1
+#	wmctrl -i -r $wid -b remove,fullscreen
+#	wmctrl -i -r $wid -b add,below,maximized_vert
+#	wmctrl -i -r $wid -b add,maximized_horz,undecorated
+
+# all desktop
+# noskip pager
+# skip taskbar
+# no iconic
+# yes shade
+# 
+
+## set the WM title name: 
+# xprop -id 0x1800003 _OB_APP_TITLE _NET_WM_VISIBLE_NAME WM_NAME _NET_WM_NAME
+
+	wmctrl -i -r $wid -N ${name}
+
+    fi
+done
+
+
+
+

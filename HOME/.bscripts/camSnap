@@ -1,0 +1,21 @@
+#!/bin/bash
+#  https://github.com/encukou/bin/blob/master/snap
+# Take a snapshot with the laptop camera
+# CAREFUL! Outputs a PNG file
+
+
+
+DIR=`mktemp -d`
+#pushd $DIR >/dev/null
+cd $DIR
+PWD=$DIR
+cuser=$(ActiveSessionInfo | grep "Name=" | cut -d'=' -f2)
+xfile=$($(which ls) /tmp/.X11-unix)
+sudo mplayer tv:// -frames ${1:-50} -vo png  --display=${cuser}.$(hostname):${xfile:1}   >/dev/null 2>&1
+# --display=xtest.localdomain:0 
+#sudo chown ${USER}:${USER} *
+#chmod 660 *
+#cat *020.png
+#rm *
+#popd
+#rmdir $DIR

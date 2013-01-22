@@ -1,0 +1,40 @@
+#!/bin/bash
+
+role="r_main_back"
+name="termite_back"  # def $0
+trans="0.35"
+#trans="0.43"
+geom="1920x1366"
+place="+1366+0"
+
+
+termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
+#termite --display=:0 --role=${role}  --geometry=920x200+1366+0 &
+sleep .1s
+
+
+# for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
+
+for wid in $(wmctrl -lp | awk '{print $1}'); do 
+    roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
+    if [[ -n $roles ]]; then
+	transset-df -i $wid  $trans
+#	wmctrl -i -r $wid -b remove,fullscreen
+	wmctrl -i -r $wid -b add,below,maximized_vert
+	wmctrl -i -r $wid -b add,maximized_horz,undecorated
+	wmctrl -i -r $wid -b add,shaded,skip_pager
+#skip_taskbar => alt-tab
+#	wmctrl -i -r $wid -b remove,skip_pager
+	wmctrl -i -r $wid -t -1
+#	wmctrl -i -r $wid -b add,modal
+#	wmctrl -i -r $wid -b add,sticky
+# all desktop
+# no iconic
+
+## set the WM title name: 
+# xprop -id 0x1800003 _OB_APP_TITLE _NET_WM_VISIBLE_NAME WM_NAME _NET_WM_NAME
+
+	wmctrl -i -r $wid -N ${name}
+
+    fi
+done

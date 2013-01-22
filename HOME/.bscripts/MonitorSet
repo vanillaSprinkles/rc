@@ -1,0 +1,41 @@
+#!/bin/bash
+#xrandr -q
+
+export DISPLAY=":0"
+
+## pick highest rez
+hres=( $( xrandr -q | grep " connected" -A1 | grep -Eo  "[0-9]+x[0-9]+[i]*[ ]{1,8}[0-9]{2}\.[0-9]+" | sed 's/  */ /g') )
+
+
+if (( ${#hres[@]} > 1 )); then
+#   xrandr   --output LVDS1 --mode 1366x768                           --pos 0x0  --output HDMI1  --mode 1920x1200                           --pos 1366x0
+#   xrandr   --output LVDS1 --mode $(echo ${hres[0]} | cut -d' ' -f1) --pos 0x0  --output HDMI1  --mode $(echo ${hres[1] | cut -d' ' -f1})  --pos 1366x0
+    xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  --output HDMI1  --mode ${hres[2]}  --pos 1366x0
+else 
+    xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0
+fi 
+
+
+eval $(cat ~/.fehbg)
+#for idz in "$($(which ps) aux  | $(which grep) -v awk | $(which awk) '/synergyc/ {print $2}')"; do [[ -n $idz ]] && kill $idz; done
+for id in $(pgrep synergyc); do kill -9 $id; done
+# DONE via WM x #eval $(synergyc -d ERROR 192.168.1.7)
+
+## VGA1 left of HDMI
+# xrandr --output VGA1 --mode 1360x768 --pos 0x0 --output HDMI1 --mode 1920x1080 --pos 1360x0
+
+## VGA1 right of HDMI
+# xrandr --output VGA1 --mode 1024x768 --pos 1920x0 --output HDMI1 --mode 1024x768 --pos 0x0
+#or
+# xrandr --output VGA1 --mode 1024x768 --output HDMI1 --mode 1024x768 --left-of VGA1
+
+## VGA1 above HDMI1
+# xrandr --output VGA1 --preferred --output HDMI1 --mode 1920x1080 --pos 0x768
+#or
+# xrandr --output VGA1 --mode 1360x768 --output HDMI1 --mode 1920x1080 --below VGA1
+
+## VGA1 below HDMI1
+# xrandr --output VGA1 --mode 1024x768 --pos 0x768 --output HDMI1 --mode 1024x768 --pos 0x0
+##or
+# xrandr --output VGA1 --mode 1024x768 --output HDMI1 --mode 1024x768 --above VGA1
+

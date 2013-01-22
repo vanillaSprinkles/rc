@@ -1,0 +1,8 @@
+#!/bin/bash
+## https://github.com/encukou
+# https://github.com/encukou/bin/blob/master/see
+
+#! /bin/bash
+# See through the laptop's eyes
+
+mplayer tv:// $*  -tv width=1360:height=768:quality=100:noaudio:fps=60 --vf=screenshot

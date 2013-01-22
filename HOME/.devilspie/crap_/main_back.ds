@@ -1,0 +1,6 @@
+( if
+  ( is ( window_class ) "main_back" )
+  ( begin
+    ( spawn_async (str "transset-df -i " (window_xid) " 0.55" ))
+  )
+)

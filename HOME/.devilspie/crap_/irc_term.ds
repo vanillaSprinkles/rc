@@ -1,0 +1,9 @@
+( if
+  ( is ( window_class ) "irc_term" )
+    ( begin
+      ( spawn_async (str "transset-df -i " (window_xid) " 0.75" ) )
+      ( geometry "950x400--0-0" )
+      ( pin )
+    )
+)
+      ( decorate )

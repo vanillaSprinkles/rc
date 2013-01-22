@@ -1,0 +1,2 @@
+#!/bin/bash
+find /tmp/ironL_msgs -type f -name "ironL_*" -not -wholename "$(lsof -d /tmp/ironL_msgs/* | sed 's/  */ /g' | grep -v "NAME"| cut -d' ' -f9 | sort -u)" | xargs rm -f

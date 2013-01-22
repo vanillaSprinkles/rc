@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# ~/.xinitrc
+#
+# Executed by startx (run your window manager from here)
+
+if [ -d /etc/X11/xinit/xinitrc.d ]; then
+  for f in /etc/X11/xinit/xinitrc.d/*; do
+    [ -x "$f" ] && . "$f"
+  done
+  unset f
+fi
+
+
+#exec xterm -geometry 80x66+0+0 -name login  #breaks things
+
+# re-enable restart-x buttons
+setxkbmap -option terminate:ctrl_alt_bksp
+
+# disable term timeout crap
+# xset -dpms; xset s off s noblank; setterm -blank 0 -powerdown 0; setterm -powersave off;
+
+[[ -f $(which pulseaudio) ]] && eval $(pulseaudio --start)
+eval $(cat ~/.fehbg)

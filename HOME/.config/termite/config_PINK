@@ -1,0 +1,72 @@
+[options]
+resize_grip         = false
+scroll_on_output    = false
+scroll_on_keystroke = true
+audible_bell        = false
+visible_bell        = false
+mouse_autohide      = false
+dynamic_title       = true
+urgent_on_bell      = true
+clickable_url       = true
+#font                = Envy Code R 9
+scrollback_lines    = 2000
+icon_name           = terminal
+#transparency        = 0.5
+cursor_blink        = off
+cursor_shape        = block
+
+[hints]
+#font         = Envy Code R 7
+background   = #bf0040
+padding      = 1
+border_width = 2.5
+roundness    = 2.0
+
+[colors]
+#foreground = #d700d7
+#background = #5f0087
+foreground = #5f0087
+background = #dd00dd
+
+# black
+#color0 = #201133
+#color8 = #251d29
+color0  = #210021
+color8  = #2C002C
+# red
+#color1 = #5f0067
+#color9 = #6f0080
+color1  = #E400B1
+color9  = #F10058
+# green
+#color2  = #3f3567
+#color10 = #552580
+color2  = #A633A6
+color10 = #7A5C7A
+# yellow
+#color3  = #5f3333
+#color11 = #734343
+color3  = #E640A6
+color11 = #EC737A
+# blue
+#color4  = #3f0067
+#color12 = #552280
+color4  = #9B00E7
+color12 = #7A00EC
+# magenta
+#color5  = #5d38a9
+#color13 = #5e2f9e
+color5  = #Fd00FD
+color13 = #Fe40Fe
+# cyan
+#color6  = #8566EB
+#color14 = #7A73EC
+#color6  = #8566EB
+#color14 = #6E80EE
+color6  = #A640E6
+color14 = #9059E9
+# white
+#color7  = #ff00ff
+#color15 = #ff44ff
+color7  = #EB66EB
+color15 = #EE80EE

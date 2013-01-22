@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#alias DotFileSync='~/.bash_stuff/dot_file_syncer.sh'
+
+#if [[ -z ${EDITOR} ]]; then
+#    alias DotFileSyncEdit="echo  \$\EDITOR NOT SPECIFIED"
+#else
+#    alias DotFileSyncEdit="${EDITOR} ~/.bash_stuff/dot_file_syncer.sh"
+#fi
+

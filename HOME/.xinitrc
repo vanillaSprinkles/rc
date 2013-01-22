@@ -1,0 +1,1 @@
+/tmp/phonz_xinitrc

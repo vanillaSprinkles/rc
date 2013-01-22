@@ -1,0 +1,52 @@
+#!/bin/bash
+
+role="r_main_back"
+name="termite_back"  # def $0
+trans="0.35"
+#trans="0.43"
+geom="1919x1198"
+place="+1366+1"
+termite_trans=0
+
+if [[ $termite_trans == 1 ]]; then
+    termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
+else
+    XDG_CONFIG_HOME_orig="${XDG_CONFIG_HOME}"
+    mkdir -p /tmp/bscripts/config/termite
+    ln -s ~/.config/* /tmp/bscripts/config/. 2>/dev/null
+    /bin/cp -f ~/.config/termite/config_back /tmp/bscripts/config/termite/config
+    XDG_CONFIG_HOME="/tmp/bscripts/config"
+    termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
+    XDG_CONFIG_HOME="${XDG_CONFIG_HOME_orig}"
+    export XDG_CONFIG_HOME
+fi
+#termite --display=:0 --role=${role}  --geometry=920x200+1366+0 &
+sleep .1s
+
+
+# for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
+
+for wid in $(wmctrl -lp | awk '{print $1}'); do 
+    roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
+    if [[ -n $roles ]]; then
+	[[ $termite_trans == 1 ]] &&  transset-df -i $wid  $trans
+	[[ $termite_trans == 0 ]] &&  transset-df -i $wid  .8
+#	wmctrl -i -r $wid -b remove,fullscreen
+	wmctrl -i -r $wid -b add,below #,maximized_vert
+	wmctrl -i -r $wid -b add,undecorated #,maximized_horz
+	wmctrl -i -r $wid -b add,shaded,skip_pager
+#skip_taskbar => alt-tab
+#	wmctrl -i -r $wid -b remove,skip_pager
+	wmctrl -i -r $wid -t -1
+#	wmctrl -i -r $wid -b add,modal
+#	wmctrl -i -r $wid -b add,sticky
+# all desktop
+# no iconic
+
+## set the WM title name: 
+# xprop -id 0x1800003 _OB_APP_TITLE _NET_WM_VISIBLE_NAME WM_NAME _NET_WM_NAME
+
+	wmctrl -i -r $wid -N ${name}
+
+    fi
+done

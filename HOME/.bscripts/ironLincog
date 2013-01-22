@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p /tmp/ironL_msgs/
+$(which iron) --incognito "${@}" > /tmp/ironL_msgs/ironL_$(datime t. ns) 2>&1
