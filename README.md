@@ -2,5 +2,9 @@ my rc files - at least the ones i want people to see
 
 HOME: all my HOMErc's for an X environment / headless setup
 
-HOME_headless: minimal HOMErc's for a headless/work environment
+
+
+2013-01-21:
+ re-created the repo; removed the work/headless config as it will exist as a fork
+
 
