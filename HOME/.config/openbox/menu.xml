@@ -46,6 +46,12 @@
       </action>
     </item>
 
+    <item label="MonitorSet">
+      <action name="Execute">
+	<command>MonitorSet</command>
+      </action>
+    </item>
+
   </menu>
 
 <menu id="apps-accessories-menu" label="Accessories">

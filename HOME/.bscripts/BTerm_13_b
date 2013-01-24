@@ -57,14 +57,7 @@ fi
 if [[ $termite_trans == 1 ]]; then
     termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
 else
-    XDG_CONFIG_HOME_orig="${XDG_CONFIG_HOME}"
-    mkdir -p /tmp/bscripts/config/termite
-    ln -s ~/.config/* /tmp/bscripts/config/. 2>/dev/null
-    /bin/cp -f ~/.config/termite/config_back /tmp/bscripts/config/termite/config
-    XDG_CONFIG_HOME="/tmp/bscripts/config"
-    termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
-    XDG_CONFIG_HOME="${XDG_CONFIG_HOME_orig}"
-    export XDG_CONFIG_HOME
+    termite --display=:0 --role=${role} --geometry=${geom}${place} -c ${XDG_CONFIG_HOME}/termite/config_back & #--hold &
 fi
 #termite --display=:0 --role=${role}  --geometry=920x200+1366+0 &
 sleep .1s
