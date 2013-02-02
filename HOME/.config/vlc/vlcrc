@@ -3428,7 +3428,7 @@ rtp-dynamic-pt=theora
 #audio=1
 
 # Default audio volume (integer)
-volume=97
+volume=224
 
 # Audio output volume step (integer)
 #volume-step=32

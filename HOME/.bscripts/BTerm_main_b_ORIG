@@ -1,12 +1,21 @@
 #!/bin/bash
 
-role="r_main_back13"
-name="termite_back_13"  # def $0
-trans="0.07"
+role="r_main_back"
+name="termite_back"  # def $0
+trans="0.35"
 #trans="0.43"
-geom="1365x766"  #  1366x768
-place="+1+1"     #  2 top/bottom  1 right size
+#  xrandr -q |  $(which grep) -Eos "HDMI.*[0-9]{1,5}x[0-9]{1,5}" | cut -d' ' -f3   =>  1920x1200
+geom="1919x1198"
+place="+1366+1"
 termite_trans=0
+
+
+
+#### get res of hdmi and auto-sets 'geom'
+hdmiRez=$(xrandr -q |  $(which grep) -Eos "HDMI.*[0-9]{1,5}x[0-9]{1,5}" | cut -d' ' -f3)
+hdmiRezX=$( echo $hdmiRez | cut -d'x' -f1)
+hdmiRezY=$( echo $hdmiRez | cut -d'x' -f2)
+geom="$((hdmiRezX-1))x$((hdmiRezY-2))"
 
 
 
@@ -17,8 +26,9 @@ for wid in $(wmctrl -lp | awk '{print $1}'); do
     roles=$(xprop -id $wid WM_WINDOW_ROLE _OB_APP_ROLE | cut -d'"' -f2 | $(which grep) -E "^${role}\$" )
     if [[ -n $roles ]]; then
 	wids+=("${wid}")
+	echo $wid
     fi
-done
+ done
 if [[ ${#wids[@]} -gt 0 ]]; then
    [[ $termite_trans == 1 ]] &&  transset-df -i ${wids[0]}  $trans
    [[ $termite_trans == 0 ]] &&  transset-df -i ${wids[0]}  .8
@@ -26,8 +36,8 @@ if [[ ${#wids[@]} -gt 0 ]]; then
    wmctrl -i -r ${wids[0]} -b add,below
    wmctrl -i -r ${wids[0]} -b add,undecorated
    wmctrl -i -r ${wids[0]} -b add,shaded,skip_pager
-   ##wmctrl -i -r ${wids[0]} -t -1
    xdotool set_desktop_for_window ${wids[0]} -1
+   ##wmctrl -i -r ${wids[0]} -t -1
    wmctrl -i -r ${wids[0]} -N ${name}
 
    ## get  absolute max resolution
@@ -55,25 +65,26 @@ fi
 
 #### launch termite ####
 if [[ $termite_trans == 1 ]]; then
-    termite --display=:0 --role=${role} --geometry=${geom}${place} & #--hold &
+    termite --display=:0 --role=${role} --geometry=${geom}${place}   & #--hold &
 else
-    termite --display=:0 --role=${role} --geometry=${geom}${place} -c ${XDG_CONFIG_HOME}/termite/config_back & #--hold &
+    termite --display=:0 --role=${role} --geometry=${geom}${place} -c ${XDG_CONFIG_HOME}/termite/config_back   & #--hold &
 fi
 #termite --display=:0 --role=${role}  --geometry=920x200+1366+0 &
 sleep .2s
+
 
 
 #### window effects ####
 # for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
 
 for wid in $(wmctrl -lp | awk '{print $1}'); do 
-    sleep .1s
     roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
     if [[ -n $roles ]]; then
 	[[ $termite_trans == 1 ]] &&  transset-df -i $wid  $trans
 	[[ $termite_trans == 0 ]] &&  transset-df -i $wid  .8
-	wmctrl -i -r $wid -b add,below
-	wmctrl -i -r $wid -b add,undecorated
+#	wmctrl -i -r $wid -b remove,fullscreen
+	wmctrl -i -r $wid -b add,below #,maximized_vert
+	wmctrl -i -r $wid -b add,undecorated #,maximized_horz
 	wmctrl -i -r $wid -b add,shaded,skip_pager
 #skip_taskbar => alt-tab
 #	wmctrl -i -r $wid -b remove,skip_pager

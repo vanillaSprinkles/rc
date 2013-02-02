@@ -70,14 +70,19 @@ else
     termite --display=:0 --role=${role} --geometry=${geom}${place} -c ${XDG_CONFIG_HOME}/termite/config_back   & #--hold &
 fi
 #termite --display=:0 --role=${role}  --geometry=920x200+1366+0 &
+
+#sz_widL=0
+#while [[ $sz_widL == 0 ]]; do
+    widList=($(wmctrl -lp | awk '{print $1}'))
+#    sz_widL=${#widList[@]}
+#done
 sleep .2s
-
-
 
 #### window effects ####
 # for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
 
-for wid in $(wmctrl -lp | awk '{print $1}'); do 
+for wid in $(wmctrl -lp | awk '{print $1}'); do   ##${widList[@]}; do   #   $(wmctrl -lp | awk '{print $1}'); do 
+    sleep .1s
     roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
     if [[ -n $roles ]]; then
 	[[ $termite_trans == 1 ]] &&  transset-df -i $wid  $trans

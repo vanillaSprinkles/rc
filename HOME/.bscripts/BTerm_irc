@@ -80,13 +80,14 @@ fi
 
 #### launch termite ####
 termite --display=:0 --role=${role}  --geometry=${geom}${place} & # --hold &
-sleep .1s
+sleep .2s
 
 
 #### window effects ####
 # for wid in $(wmctrl -lp | awk '{print $1}'); do xprop -id $wid | grep YAY && echo $wid; done
 
 for wid in $(wmctrl -lp | awk '{print $1}'); do 
+    sleep .1s
     roles=$(xprop -id $wid  WM_WINDOW_ROLE  _OB_APP_ROLE | $(which grep) ${role} )
     if [[ -n $roles ]]; then
 	transset-df -i $wid  $trans
