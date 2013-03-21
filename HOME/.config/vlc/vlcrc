@@ -3295,7 +3295,7 @@ dvb-transmission=-1
 #pvr-bitrate-peak=-1
 
 # Bitrate mode (integer)
-#pvr-bitrate-mode=-1
+pvr-bitrate-mode=0
 
 # Audio bitmask (integer)
 #pvr-audio-bitmask=-1
@@ -3428,7 +3428,7 @@ rtp-dynamic-pt=theora
 #audio=1
 
 # Default audio volume (integer)
-volume=224
+volume=512
 
 # Audio output volume step (integer)
 #volume-step=32
@@ -3767,13 +3767,13 @@ volume=224
 #meta-url=
 
 # File caching (ms) (integer)
-file-caching=3000
+file-caching=4000
 
 # Live capture caching (ms) (integer)
 live-caching=3000
 
 # Disc caching (ms) (integer)
-disc-caching=3000
+disc-caching=4000
 
 # Network caching (ms) (integer)
 network-caching=3000

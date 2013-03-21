@@ -1,0 +1,4 @@
+"Development"
+"Eclipse" "/usr/share/icons/hicolor/48x48/apps/eclipse.png" exec "eclipse"
+"OpenJDK Monitoring & Management Console" "/usr/share/icons/hicolor/48x48/apps/java.png" exec "/usr/bin/jconsole"
+"OpenJDK Policy Tool" "/usr/share/icons/hicolor/48x48/apps/java.png" exec "/usr/bin/policytool"

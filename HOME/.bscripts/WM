@@ -15,7 +15,7 @@ elif [[ $arg1 == "fix" ]]; then
 fi
 
 
-[[ -z $arg1 ]] && echo -en "Use ${0} --help\nRequires one of the following available Window Managers: \n  " &&x check && exit
+[[ -z $arg1 ]] && echo -en "Use ${0} --help\nRequires one of the following available Window Managers: \n  " && ~/.bscripts/x check && exit
 if [[ ${arg1,,} == "--help" || ${arg1,,} == "help" ]]; then
     echo "$0  --help  |  <setsynergycip | set>  <ip>  |  <window manager>"
     echo "  --help: displays this help message"

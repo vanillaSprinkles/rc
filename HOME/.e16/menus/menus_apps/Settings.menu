@@ -1,0 +1,6 @@
+"Settings"
+"Adobe Flash Player" "/usr/share/icons/hicolor/48x48/apps/flash-player-properties.png" exec "flash-player-properties"
+"Default Sound Card" "gnome-settings-sound" exec "/usr/bin/asoundconf-gtk"
+"Openbox Configuration Manager" "/usr/share/pixmaps/obconf.png" exec "obconf"
+"Privilege granting" "/usr/share/pixmaps/gksu.png" exec "gksu-properties"
+"PulseAudio Preferences" "/usr/share/icons/gnome/48x48/categories/preferences-desktop.png" exec "paprefs"

@@ -1,0 +1,4 @@
+"Utility"
+"7-Zip FM" "/usr/share/icons/hicolor/32x32/apps/p7zip.png" exec "7zFM"
+"Root Terminal" "/usr/share/pixmaps/gksu-root-terminal.png" exec "gksu -l gnome-terminal"
+"Synergy" "/usr/share/pixmaps/synergy.png" exec "synergy"
