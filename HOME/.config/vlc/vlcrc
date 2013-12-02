@@ -1,5 +1,5 @@
 ﻿###
-###  vlc 2.0.5
+###  vlc 2.0.7
 ###
 
 ###
@@ -581,6 +581,32 @@
 
 # Stream public (boolean)
 #sout-shout-public=0
+
+[projectm] # libprojectM effect
+
+# projectM preset path (string)
+#projectm-preset-path=/usr/share/projectM/presets
+
+# Title font (string)
+#projectm-title-font=/usr/share/fonts/TTF/DejaVuSans.ttf
+
+# Font menu (string)
+#projectm-menu-font=/usr/share/fonts/TTF/DejaVuSansMono.ttf
+
+# Video width (integer)
+#projectm-width=800
+
+# Video height (integer)
+#projectm-height=500
+
+# Mesh width (integer)
+#projectm-meshx=32
+
+# Mesh height (integer)
+#projectm-meshy=24
+
+# Texture size (integer)
+#projectm-texture-size=1024
 
 [visual] # Visualizer filter
 
@@ -1570,11 +1596,6 @@
 
 [telepathy] # Telepathy "Now Playing" (MissionControl)
 
-[notify] # LibNotify Notification Plugin
-
-# Timeout (ms) (integer)
-#notify-timeout=4000
-
 [vod_rtsp] # RTSP VoD server
 
 # MUX for RAW RTSP transport (string)
@@ -2519,7 +2540,7 @@ skins2-config=["aboutwin" "aboutwinwin-main" 518 298 330 171 0]["eqwin" "eqwin-m
 #ffmpeg-hw=0
 
 # Threads (integer)
-#ffmpeg-threads=1
+#ffmpeg-threads=0
 
 # Codec name (string)
 #sout-ffmpeg-codec=
@@ -3428,7 +3449,7 @@ rtp-dynamic-pt=theora
 #audio=1
 
 # Default audio volume (integer)
-volume=512
+volume=366
 
 # Audio output volume step (integer)
 #volume-step=32
@@ -4621,3 +4642,6 @@ network-caching=3000
 # Playlist bookmark 10 (string)
 #bookmark10=
 
+[notify] # LibNotify Notification Plugin
+# Timeout (ms) (integer)
+#notify-timeout=4000

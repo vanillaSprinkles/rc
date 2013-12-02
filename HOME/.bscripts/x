@@ -38,7 +38,7 @@ if [[ $scr_hid == 1 ]]; then
   for i in ${wms[@]}; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
   if (( $match==0 )); then
     echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
-    echo -en "  Window Managers: ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
     return
   fi
 elif [[ $scr_hid == 2 ]]; then
@@ -47,7 +47,7 @@ elif [[ $scr_hid == 2 ]]; then
   if (( $match==0 )); then
     # glitches here
     echo -e "${ReD}x: invalid  window manager: '${wm}', exiting.'${DeF}"
-    echo -en "  Window Managers: ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
     return
   fi
 else
@@ -56,7 +56,7 @@ else
     for i in ${wms[@]}; do	if [[ "$i" == "${2}" ]]; then match=1; fi;    done
     if (( $match==0)); then
       echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
-      echo -en "  Window Managers: ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+      echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
       return
     else
       wm=${2};	    mode=3  # wm in {2} and error in {1}
@@ -79,9 +79,9 @@ case "${wm}" in
     'enlightenment')
 	wm="e16"
 	;;
-    *) echo "should not have got here, exiting" 
-	exit
-	;;
+#    *) echo "should not have got here, exiting" 
+#	exit
+#	;;
 esac
 
 
