@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -e /usr/bin/xlock ]; then
+    
+    xlock -mousemotion +description -mode blank -bg black -fg grey30
+else
+    echo "xlock does not exist (install xlockmore)"
+fi

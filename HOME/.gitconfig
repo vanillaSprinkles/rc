@@ -46,3 +46,7 @@
 
 [push]
     default = current
+[github]
+	user = 
+	password = 
+	oauth-token = 

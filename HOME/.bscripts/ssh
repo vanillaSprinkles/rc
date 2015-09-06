@@ -3,6 +3,6 @@ SSH=/usr/bin/ssh
 
 ${SSH} -o "ServerAliveInterval=60" ${@}
 
-echo -e "SSH to \"${@}\" END on $(${HOME}/.bscripts/datime)"
+echo -e "SSH to \"${@}\" END on $(${HOME}/.bscripts/datime)" 1>&2
 
 #echo "asdad asdasdas asd asd asd a"

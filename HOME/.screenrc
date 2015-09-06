@@ -8,6 +8,7 @@
 
 
 # Set the escape sequence to just a single backtick instead of '^a'. FTFW!
+escape ``
 #escape ^``
 # ^``  => works in native linux but not through any SSH environment (ctrl ` is not captured)
 
@@ -68,12 +69,12 @@ bind j focus down
 bind k focus up
 bind t focus top
 bind b focus bottom
-bind s split
+bind S split
 #bind S split -v
 bind x remove
 bind m monitor
 #bind z suspend
-bind s vbell
+#bind s vbell
 #bind x stop
 #----------------------------------------------------------
 
@@ -227,13 +228,40 @@ silencewait 15
 startup_message off
 encoding UTF-8
 defutf8 on
-term screen-256color
+#term screen-256color
+term screen-256color-s
 #term xterm-256color
 msgwait 10
 hardcopy_append on
 #emulate .logout message
 #pow_detach_msg "Screen session of $LOGNAME $:cr:$:n1:ended."
 pow_detach_msg "Screen session of $LOGNAME ended."
+
+
+#/usr/share/terminfo]# find . -iname "*256*"
+#./r/rxvt-256color
+#./r/rxvt-unicode-256color
+#./x/xterm+256color
+3./x/xnuppc-256x96-m
+#./x/xterm-256color
+#./x/xnuppc-256x96
+#./x/xnuppc+256x96
+3./p/putty-256color
+#./E/Eterm-256color
+#./k/konsole-256color
+#./s/screen-256color-bce-s
+#./s/screen-256color-s
+#./m/mlterm-256color
+#./m/mrxvt-256color
+#./v/vte-256color
+#./g/gnome-256color
+#./d/darwin-256x96
+#./d/darwin-256x96-m
+#
+## BCE: background color erace
+## screen-256color-s       GNU Screen with 256 colors and status line
+## screen-256color-bce-s   GNU Screen with 256 colors, BCE, and status line
+
 
 
 # -----------------------------------------------------------------------

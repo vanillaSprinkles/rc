@@ -1,0 +1,70 @@
+#!/bin/bash
+
+network_store="/mnt/auto.driven"
+
+ArchivesPerDay=1
+PrevDays=2
+PrevWeeks=2
+
+
+bt="/tmp/ob"
+ctime=$(/bin/date '+%Y.%m.%d__%H.%M.%S')
+RH=$(/bin/date '+%H')
+#ctime=$(/bin/date '+%Y.%m.%d__%H')
+tgzf="auto_backup_sritutil01v_${ctime}.czf.tar.gz"
+
+RSYNC="/usr/bin/rsync"
+TAR="/bin/tar"
+LS="/bin/ls"
+
+bc="${bt}/current"
+mkdir -p "${bc}"
+
+pushd "${bt}"  2>&1 1> /dev/null
+
+if [[ 1 -eq 0 ]]; then
+
+
+mode="-a"
+mode="-aAXv --delete"
+
+$RSYNC $mode /etc "${bc}" &> /dev/null
+$RSYNC $mode /root "${bc}" &> /dev/null
+$RSYNC $mode /var/www "${bc}" &> /dev/null
+crontab -u root -l > "${bc}/crontab.root.txt"
+## for N in $(cut -d':' -f1 /etc/passwd); do crontab -l -u $N 2>/dev/null; done
+
+$TAR -czf "${tgzf}" "current"  &> /dev/null
+mv "${tgzf}" "${network_store}/"
+
+fi
+
+
+expectedDailyFiles=$((ArchivesPerDay * $((PrevDays + 1)) ))
+eDF=$expectedDailyFiles
+checkOn=$((eDF +1))
+
+echo "$eDF  check on $checkOn"
+exit
+
+
+ARCHIVES=($($LS -At1 "${network_store}"))
+ARCHI_sz=${#ARCHIVES[@]}
+case $ARCHI_sz in
+    [0-9])
+        echo "[0-6]: $ARCHI_sz"
+        echo "${ARCHIVES[@]}"
+        ;;
+    10)
+
+        ;;
+
+    *)
+        echo "*      $ARCHI_sz"
+        echo "${ARCHIVES[@]}"
+        echo "dunno what to do with number of arhives: ${ARCHI_sz}"
+        exit 1
+        ;;
+esac
+
+popd 2>&1 1> /dev/null

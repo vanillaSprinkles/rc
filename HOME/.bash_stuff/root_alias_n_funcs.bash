@@ -7,7 +7,31 @@ if [ $USER == "root" ]; then
 
 alias slowReboot="ping 127.0.0.1 -c 10 -t 1  &&  shutdown -r now"
 
-
+## apache FUN
+# https://www.openssl.org/docs/apps/genpkey.html#DSA_PARAMETER_GENERATION_OPTIONS
+# generate OPENSSL cert:
+# DSA key
+# KEYNAME="s.key"
+# CSRNAME="s.csr"
+# CRTNAME="s.crt"
+# MAXAGE="730"
+# BITS
+##NOPE## openssl genpkey -genparam -algorithm DSA -pkeyopt dsa_paramgen_bits:8192 -out $KEYNAME
+## openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4098 -out $KEYNAME
+# openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:16384 -out $KEYNAME
+# chmod 600 $KEYNAME
+# openssl req -new -key $KEYNAME -out $CSRNAME
+# openssl x509 -req -days $MAXAGE -in $CSRNAME -signkey $KEYNAME -out $CRTNAME
+# 16
+# export BITS=16384
+# export KEYNAME="s.rsa16.key"
+# export CSRNAME="s.rsa16.csr"
+# export CRTNAME="s.rsa16.crt"
+# export MAXAGE="730"
+# openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:$BITS -out $KEYNAME
+# chmod 600 $KEYNAME
+# openssl req -new -key $KEYNAME -out $CSRNAME
+# openssl x509 -req -days $MAXAGE -in $CSRNAME -signkey $KEYNAME -out $CRTNAME
 
 #
 

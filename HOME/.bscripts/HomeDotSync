@@ -84,7 +84,7 @@ fi
 echo -n " ${0##*/}" 
 [[ -n ${@} ]] && echo " ${@}:" || echo ":"
 echo "   output folder: ${DotFiles}"
-
+mkdir -p ${DotFiles}
 
 ### needs work here for dynamic  XDG_CONFIG_HOME   ###
 ## imported
@@ -96,7 +96,6 @@ dCONFIGr="${dCONFIG//./\\.}"
 #echo "${uhf} /   ${dCONFIG}"
 #echo "${CONFIGf}   ${CONFIGfr}"
 #XDG_C_HOME_name=${
-#exit
 
 #echo ${GLOBALrsyncIgnores[@],/ /,}
 tGRI=${GLOBALrsyncIgnores[@]}
@@ -115,9 +114,10 @@ exclusions="${gexcl}  ${GRI}  --exclude=.pulse/*-runtime"
 exclusionsCFG="${gexcl}  ${GRI}  --exclude=dwb-uni.fifo --exclude SingletonLock --exclude SingletonCookie --exclude SingletonSocket"
 exclusionsEMACS="${gexcl}  ${GRI}"
 
+
 ##
 # main dots
-sz_privC=${#privC[@]}
+sz_privC=${#privC[@]} ## priv Custom-rsync command
 for ((itr=0;itr<sz_privC;itr++)); do
   # 0  command +1  file
     if (( $itr %  2 == 0 )); then
@@ -132,7 +132,7 @@ for ((itr=0;itr<sz_priv;itr++)); do
     dotFiles+=("${priv[$itr]}")
 done
 
-sz_pubC=${#pubC[@]}
+sz_pubC=${#pubC[@]} ## pub Custom-rsync command
 for ((itr=0;itr<sz_pubC;itr++)); do
     if (( $itr % 2 == 0 )); then
 	${pubC[$itr]}  $exclusions   ~/${pubC[$((itr+1))]}   ${DotFiles}/pub/
@@ -147,6 +147,7 @@ for ((itr=0;itr<sz_pub;itr++)); do
 done
 # end main dots
 ##
+
 
 ##
 # .config folder rsync's
@@ -164,6 +165,7 @@ for ((itr=0;itr<sz_privCFG;itr++)); do  #_# ~/.config
     dotFilesCFG+=("${privCFG[$itr]}")
 done
 
+# priv cfg custom-rsyn STUBS ??
 sz_pubCFGc=${#pubCFGc[@]}
 mkdir -p ${DotFiles}/pub/.config
 for ((itr=0;itr<sz_pubCFGc;itr++)); do
@@ -224,50 +226,58 @@ if [[ ${PrintSYNCFiles} == 1 ||  -n "${PrintSYNCFiles}" ]]; then
     touch /tmp/dotfilesyncerouts.dunnos  /tmp/dotfilesyncerouts.ignores /tmp/dotfilesyncerouts.gignores  /tmp/dotfilesyncerouts.syncing
 fi
 
-[[ ${PrintSYNCFiles} == 1 ||  "${PrintSYNCFiles:0:1}" == 1  ]] && echo -e "\nsync'ing:"
+[[ ${PrintSYNCFiles} == 1 ||  "${PrintSYNCFiles:0:1}" == 1  ]] && echo -e "\nsync'ing (rsync to regex):"
 
 for (( itr=0;itr<sz_dotFiles;itr++ )); do
-    tmp="${dotFiles[$itr]/$'.'/\\.}"
-    tmp2="${tmp/$'\*'/.*}"'$'
-    if [[ ${PrintSYNCFiles} == 1  || ${PrintSYNCFiles:0:1} == 1 ]]; then
-	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
-    fi
-    dfR+=( ${tmp2} )
+  tmp="${dotFiles[$itr]/$'.'/\\.}"
+#_tmp2="${tmp/$'\*'/.*}"'$'
+  tmp2="${tmp/$'\*'/.*}"''
+  tmp="${tmp2/\*/\.\*}"
+  tmp2="$tmp"
+  if [[ ${PrintSYNCFiles} == 1  || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	  echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+  fi
+  dfR+=( ${tmp2} )
 done
 # .config syncing list
-
 for (( itr=0;itr<sz_dotFilesCFG;itr++ )); do
-    tmp="${dotFilesCFG[$itr]/$'.'/\\.}"
-#    tmp2="\.config/${tmp/$'\*'/.*}"'$'
-    tmp2="/${dCONFIGr}/${tmp/$'\*'/.*}"'$'
-    if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
-	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
-    fi
-    dfRCFG+=( ${tmp2} )
+  tmp="${dotFilesCFG[$itr]/$'.'/\\.}"
+  #    tmp2="\.config/${tmp/$'\*'/.*}"'$'
+#_tmp2="/${dCONFIGr}/${tmp/$'\*'/.*}"'$'
+  tmp2="/${dCONFIGr}/${tmp/$'\*'/.*}"''
+  tmp="${tmp2/\*/\.\*}"
+  tmp2="$tmp"
+  if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	  echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+  fi
+  dfRCFG+=( ${tmp2} )
 done
 # .emacs.d syncing list
 for (( itr=0;itr<sz_dotFilesEMACS;itr++ )); do
-    tmp="${dotFilesEMACS[$itr]/$'.'/\\.}"
-    tmp2="\.emacs.d/${tmp/$'\*'/.*}"'$'
-    if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
-	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
-    fi
-    dfREMACS+=( ${tmp2} )
+  tmp="${dotFilesEMACS[$itr]/$'.'/\\.}"
+#_tmp2="\.emacs.d/${tmp/$'\*'/.*}"'$'
+  tmp2="\.emacs.d/${tmp/$'\*'/.*}"''
+  tmp="${tmp2/\*/\.\*}"
+  tmp2="$tmp"
+  if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	  echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+  fi
+  dfREMACS+=( ${tmp2} )
 done
 
 
 
 if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
-#    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.syncing)
-    if [[ ${PrintSYNCasGrid} == 1 ]]; then
-	sort /tmp/dotfilesyncerouts.syncing | column -c ${COLUMNS}
-    else
-	sort /tmp/dotfilesyncerouts.syncing
-    fi
-    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.syncing | wc -l)  sync definitions"
-    #echo -e  $(($sz_dotFiles+$sz_dotFilesCFG))
-    rm -f /tmp/dotfilesyncerouts.syncing
-    
+  #    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.syncing)
+  if [[ ${PrintSYNCasGrid} == 1 ]]; then
+	  sort /tmp/dotfilesyncerouts.syncing | column -c ${COLUMNS}
+  else
+	  sort /tmp/dotfilesyncerouts.syncing
+  fi
+  echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.syncing | wc -l)  sync definitions"
+  #echo -e  $(($sz_dotFiles+$sz_dotFilesCFG))
+  [[ $deleteTmpFiles -ne 0 ]] && rm -f /tmp/dotfilesyncerouts.syncing
+  
 fi
 
 ## add IgnoreReg to RegEx array: dfR
@@ -292,7 +302,7 @@ done
 
 if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:1:1} == 1 ]]; then
     ignoreing=0
-    echo -e "\nIgnore'ing:"
+    echo -e "\nIgnore'ing (regex - unformatted):"
     for ((itr=0;itr<sz_ignores;itr++)); do
 #	[[ "${IgnoreReg[$itr]}" == "^_placeholder_$" || "${IgnoreReg[$itr]}" == "\.config$"  || "${IgnoreReg[$itr]}" == "\.emacs\.d$" ]] && continue
 	[[ "${IgnoreReg[$itr]}" == "^_placeholder_$" || "${IgnoreReg[$itr]}" == "${dCONFIGr}$"  || "${IgnoreReg[$itr]}" == "\.emacs\.d$" ]] && continue
@@ -303,7 +313,7 @@ if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:1:1} == 1 ]]; then
 #	[[ "${IgnoreRegCFG[$itr]}" == "^_placeholder_$" || "${IgnoreRegCFG[$itr]}" == "\.config$" ]] && continue
 	[[ "${IgnoreRegCFG[$itr]}" == "^_placeholder_$" || "${IgnoreRegCFG[$itr]}" == "${dCONFIGr}$" ]] && continue
 #	echo  " \.config${IgnoreRegCFG[$itr]}" >> /tmp/dotfilesyncerouts.ignores
-	echo  " ${dCONFIGr}${IgnoreRegCFG[$itr]}" >> /tmp/dotfilesyncerouts.ignores
+	echo  " /${dCONFIGr}${IgnoreRegCFG[$itr]}" >> /tmp/dotfilesyncerouts.ignores
     done
     #.emacs.d
     for ((itr=0;itr<sz_ignoresEMACS;itr++)); do
@@ -322,15 +332,15 @@ if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:1:1} == 1 ]]; then
 	sort /tmp/dotfilesyncerouts.ignores
     fi
     echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.ignores | wc -l)  ignore definitions"
-    echo -e "\nIgnore'ing (globals):"
+    echo -e "\nIgnore'ing (globals - unformatted):"
     if [[ ${PrintSYNCasGrid} == 1 ]]; then
 	sort /tmp/dotfilesyncerouts.gignores | column -c ${COLUMNS}
     else
 	sort /tmp/dotfilesyncerouts.gignores
     fi
     echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.gignores | wc -l)  ignore (global) definitions"
-    rm -f /tmp/dotfilesyncerouts.ignores    
-    rm -f /tmp/dotfilesyncerouts.gignores
+    [[ $deleteTmpFiles -ne 0 ]] && rm -f /tmp/dotfilesyncerouts.ignores    
+    [[ $deleteTmpFiles -ne 0 ]] && rm -f /tmp/dotfilesyncerouts.gignores
 fi
 ## rsync + ignores file lists as RegEx
 sz_r=${#dfR[@]}
@@ -434,13 +444,26 @@ if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:2:1} == 1 ]]; then
 	echo " ${allEMACSFiles[$itr]}" >> /tmp/dotfilesyncerouts.dunnos
     done
 #    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.dunnos)
+
+#    ## CONTAINS THINGS EXPLICITLY SPECIFIED - fixed
+#    ## somehow INSIDE THE SCRIPT some files in the for-X are resolving ?? ##
+#    oIFS="$IFS"
+#    IFS=$'\n'
+#    tmp="$(echo $(for X in $(cat /tmp/dotfilesyncerouts.syncing); do echo -n "$X|"; done)$(for X in $(cat /tmp/dotfilesyncerouts.ignores); do echo -n "$X|"; done) | sed 's/| /|/g')"
+#    IFS="$IFS"
+#    sz_tmp=${#tmp}
+#    PULLREG="${tmp:1:sz_tmp-2}"
+#    mv -f /tmp/dotfilesyncerouts.dunnos /tmp/dotfilesyncerouts.dunnos.yank
+#    $GREP -Ev "$PULLREG" /tmp/dotfilesyncerouts.dunnos.yank > /tmp/dotfilesyncerouts.dunnos
+#    rm -f /tmp/dotfilesyncerouts.dunnos.yank
+    
     if [[ ${PrintSYNCasGrid} == 1 ]]; then
 	sort /tmp/dotfilesyncerouts.dunnos | column -c ${COLUMNS}
     else
 	sort /tmp/dotfilesyncerouts.dunnos
     fi
     echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.dunnos | wc -l)  not specified items"
-    rm -f /tmp/dotfilesyncerouts.dunnos
+    [[ $deleteTmpFiles -ne 0 ]] && rm -f /tmp/dotfilesyncerouts.dunnos
 #    echo -e "$(($sz_allDF+$sz_allDF_CFG))"
 fi
 

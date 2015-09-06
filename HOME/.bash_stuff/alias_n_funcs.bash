@@ -203,6 +203,7 @@ alias bmp2jpg-subdir-die='bmp-jpg-recursive-die'
 
 
 
+## rescan
 ### re-scan scsi (sata) devices
 alias resata='reSata'
 function reSata () {

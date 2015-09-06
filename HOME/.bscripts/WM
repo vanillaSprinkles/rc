@@ -60,4 +60,7 @@ fi
 ## do the needful
 mkdir -p /tmp/bscripts 
 echo "${arg1}" > /tmp/bscripts/${USER}-WM.tmp
-$($(which screen) -S WM_$1  -c ~/.config/bscripts/WM.screenrc )
+eval script /dev/null -c "'screen -S WM_$1  -c ~/.config/bscripts/WM.screenrc'"
+
+## following failes due to not checking for script-mode ish that 'screen.bash' takes care of ##
+##$($(which screen) -S WM_$1  -c ~/.config/bscripts/WM.screenrc )

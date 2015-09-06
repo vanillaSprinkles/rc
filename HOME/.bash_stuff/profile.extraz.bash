@@ -9,6 +9,8 @@ shopt -s checkwinsize
 # don't put duplicate lines in the history. See bash(1) for more options
 export HISTCONTROL=ignoredups
 
+export EDITOR=emacs
+
 #eval `ssh-agent`
 #[ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/id_dsa
 #[ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/id_rsa

@@ -3,14 +3,17 @@
 ctime=$(datime)
 TMPDIR="/tmp/bscripts_BSyncGitHub_${ctime}"
 mkdir -p "${TMPDIR}"
+echo "TMPDIR: ${TMPDIR}"
 
+echo "syncys from HOME_headless"
+#exit
 
 
 for L in $(lynx -dump https://github.com/vanillaSprinkles/rc_headless/tree/master/HOME_headless/.bscripts | /bin/grep -Eo ".bscripts/.*"); do 
-    wget --quiet  "https://raw.github.com/vanillaSprinkles/rc_headless/master/HOME_headless/${L}" -O "${TMPDIR}/${L##*/}"
+  echo    wget --quiet  "https://raw.github.com/vanillaSprinkles/rc_headless/master/HOME_headless/${L}" -O "${TMPDIR}/${L##*/}"
 #    echo -e "${L%%/*}      ${L##*/}"; 
 done
 
-~/.bscripts/BscriptsChmod "${TMPDIR}"
+#~/.bscripts/BscriptsChmod "${TMPDIR}"
 
-mv -i "${TMPDIR}"/* ${HOME}/.bscripts/.
+echo mv -i "${TMPDIR}"/* ${HOME}/.bscripts/.

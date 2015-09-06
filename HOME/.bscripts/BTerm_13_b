@@ -1,13 +1,13 @@
 #!/bin/bash
 
-role="r_main_back13"
+role="r_main_back_13"
 name="termite_back_13"  # def $0
 trans="0.07"
 #trans="0.43"
 geom="1365x766"  #  1366x768
 place="+1+1"     #  2 top/bottom  1 right size
 termite_trans=0
-
+toverride=1
 
 
 
@@ -22,6 +22,7 @@ done
 if [[ ${#wids[@]} -gt 0 ]]; then
    [[ $termite_trans == 1 ]] &&  transset-df -i ${wids[0]}  $trans
    [[ $termite_trans == 0 ]] &&  transset-df -i ${wids[0]}  .8
+   [[ $toverride     == 1 ]] &&  transset-df -i ${wids[0]}  $trans
    wmctrl -i -r ${wids[0]} -b remove,above,hidden
    wmctrl -i -r ${wids[0]} -b add,below
    wmctrl -i -r ${wids[0]} -b add,undecorated
@@ -72,6 +73,7 @@ for wid in $(wmctrl -lp | awk '{print $1}'); do
     if [[ -n $roles ]]; then
 	[[ $termite_trans == 1 ]] &&  transset-df -i $wid  $trans
 	[[ $termite_trans == 0 ]] &&  transset-df -i $wid  .8
+	[[ $toverride     == 1 ]] &&  transset-df -i $wid  $trans
 	wmctrl -i -r $wid -b add,below
 	wmctrl -i -r $wid -b add,undecorated
 	wmctrl -i -r $wid -b add,shaded,skip_pager

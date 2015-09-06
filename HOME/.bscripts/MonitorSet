@@ -8,16 +8,17 @@ hres=( $( xrandr -q | grep " connected" -A1 | grep -Eo  "[0-9]+x[0-9]+[i]*[ ]{1,
 
 
 if (( ${#hres[@]} > 2 )); then
-#   xrandr   --output LVDS1 --mode 1366x768                           --pos 0x0  --output HDMI1  --mode 1920x1200                           --pos 1366x0
-#   xrandr   --output LVDS1 --mode $(echo ${hres[0]} | cut -d' ' -f1) --pos 0x0  --output HDMI1  --mode $(echo ${hres[1] | cut -d' ' -f1})  --pos 1366x0
-    xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  --output HDMI1  --mode ${hres[2]}  --pos 1366x0
+#     xrandr   --output LVDS1 --mode 1366x768                           --pos 0x0  --output HDMI1  --mode 1920x1200                           --pos 1366x0
+#     xrandr   --output LVDS1 --mode $(echo ${hres[0]} | cut -d' ' -f1) --pos 0x0  --output HDMI1  --mode $(echo ${hres[1] | cut -d' ' -f1})  --pos 1366x0
+      xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  --output HDMI1  --mode ${hres[2]}  --pos 1366x0
 else 
-echo    xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  
-    xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  --output HDMI1 --off
+echo  xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  
+      xrandr   --output LVDS1 --mode ${hres[0]}  --pos 0x0  --output HDMI1 --off
 fi 
 
 
-eval $(cat ~/.fehbg)
+#eval $(cat ~/.fehbg)
+sh ~/.fehbg
 #for idz in "$($(which ps) aux  | $(which grep) -v awk | $(which awk) '/synergyc/ {print $2}')"; do [[ -n $idz ]] && kill $idz; done
 for id in $(pgrep synergyc); do kill -9 $id; done
 # DONE via WM x #eval $(synergyc -d ERROR 192.168.1.7)

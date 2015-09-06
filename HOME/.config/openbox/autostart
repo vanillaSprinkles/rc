@@ -16,7 +16,7 @@
 #
 #xfce-mcs-manager &
 
-/home/bashDotFiles/.bscripts/MonitorSet
-/home/bashDotFiles/.bscripts/BTerm_Background
+sh /home/bashDotFiles/.bscripts/MonitorSet &
+sh /home/bashDotFiles/.bscripts/BTerm_Background &
 #synergyc  -d ERROR 192.168.1.7
 

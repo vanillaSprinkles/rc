@@ -6,11 +6,16 @@
 # function x
 
 ## wm checker
-wms=$(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "xcompmgr" && $1 != "screen-vs" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}')
+wms=( $(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "xcompmgr" && $1 != "screen-vs" && $1 != "screen-vs-long-term" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}') )
+#wms+=$(pacman -Qs display manager | /usr/bin/grep "^local" | sed "s/^local\///" | grep -Ev "^lib.*"  | awk '{if ($1 != "^lib") print $1}'  )
+wms+=( $(pacman -Qs display manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{if ($1 !~ /^lib.*/ ) print $1}'  ) )
+
 for i in ${wms[@]}; do
-  if [[ "$i" == "i3-git" ]]; then wms=( ${wms[@]} "i3" ); fi
-  if [[ "$i" == "wmii-hg" ]]; then wms=( ${wms[@]} "wmii" ); fi
-#  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
+  if [[ "$i" == "i3-git" ]];  then wms+=("i3")  ; fi
+  if [[ "$i" == "wmii-hg" ]]; then wms+=("wmii") ; fi
+  if [[ "$i" == "xfwm4" ]];   then wms+=("xfwm" "xfce") ; fi
+  if [[ "$i" == "lxdm" ]];    then wms+=("lxde"); fi
+##  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
 done
 
 sorted=($(printf '%s\n' "${wms[@]}"|sort))
@@ -73,15 +78,31 @@ case "${wm}" in
     'i3-git')
 	wm="i3"
 	;;
+    'xfce')
+	#wm="startxfce4"
+	wm="xfce4-session"
+	;;
+    'xfwm4')
+	wm="xfce4-session"
+	;;
     'wmii-hg')
 	wm="wmii"
 	;;
-    'enlightenment17')
+     'enlightenment')
 	wm="enlightenment_start"
 	;;
-    'enlightenment')
-        wm="e16"
+    'lxde')
+	wm="startlxde"
 	;;
+    'lxdm')
+	wm="startlxde"
+	;;
+#    'enlightenment17')
+#	wm="enlightenment_start"
+#	;;
+#    'enlightenment')
+#        wm="e16"
+#	;;
 #    *) echo "should not have got here, exiting" 
 #	exit
 #	;;
@@ -108,6 +129,7 @@ case ${mode} in
   *)
     /usr/bin/startx	    ;;
 esac
+unset DISPLAY
 
 } # end startx_helper
 

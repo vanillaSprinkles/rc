@@ -1,0 +1,5 @@
+#!/bin/bash
+V=/usr/bin/vagrant
+echo "$V $@"
+
+VagrantCleanTemp
