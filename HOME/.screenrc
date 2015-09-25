@@ -228,8 +228,8 @@ silencewait 15
 startup_message off
 encoding UTF-8
 defutf8 on
-#term screen-256color
 term screen-256color-s
+term screen-256color
 #term xterm-256color
 msgwait 10
 hardcopy_append on

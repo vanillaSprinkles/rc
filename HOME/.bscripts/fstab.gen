@@ -1,0 +1,26 @@
+#!/bin/bash
+
+oIFS=$IFS
+IFS=$'\n'
+
+arg=$1
+arg_sz=${#arg}
+[[ "${arg:arg_sz-1:arg_sz}" == '/' ]] && arg=${arg:0:arg_sz-1}
+
+MPS=($(mount -l | /bin/grep $arg | /bin/grep -Ev "$arg/(sys|proc|dev)" | sed -r 's/ (on|type) / /g' | sed -r "s@"$arg"/?@/@g"))
+IFS=$oIFS
+
+for (( i=0; i< ${#MPS[@]}; i++ )); do
+ #echo "${MPS[$i]}"
+ tmp="${MPS[$i]}"
+ uuid=$(lsblk -rno UUID $(echo "$tmp" | awk '{print $1}'))
+ mp=$(echo $tmp | awk '{print $2}')
+ fs=$(echo $tmp | awk '{print $3}')
+ opts="$(echo $tmp | awk '{print $4}' | sed -r 's@^.*\((.*)\).*$@\1@g')"
+echo "UUID=$uuid    $mp    $fs     $opts     0   0" 
+
+#echo $tmp
+done
+
+
+

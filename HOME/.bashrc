@@ -6,13 +6,13 @@
 # hard folder
 #if [ -d ~/.bash_stuff ]; then                                                         
 [[ -d ~/.bash_stuff ]] && 
-    for file in $(find ~/.bash_stuff -maxdepth 1 -type f -name "*.bash" -o -name "*.bash_priv"); do
+    for file in $(find ~/.bash_stuff -maxdepth 1 -mindepth 1 -type f -name "*.bash" -o -name "*.bash_priv"); do
         . ${file}
     done
 
 # symbolic link 
 [[ -h ~/.bash_stuff ]] && 
-    for file in $(find -L ~/.bash_stuff -maxdepth 1 -type f -name "*.bash" -o -name "*.bash_priv"); do
+    for file in $(find -L ~/.bash_stuff -maxdepth 1 -mindepth 1 -type f -name "*.bash" -o -name "*.bash_priv"); do
         . ${file}
     done
 

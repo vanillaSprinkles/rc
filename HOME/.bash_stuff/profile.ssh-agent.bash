@@ -1,7 +1,25 @@
 #!/bin/bash
 
-ID_DSA=1
-ID_RSA=1
+#ID_DSA=1
+#ID_RSA=1
+echo -n "load sshkeys (y/n/<command>): " >&2
+read ans
+if [[ "${ans,,}" == 'y' ]]; then
+  ID_RSA=1
+  ID_DSA=1
+elif [[ "${ans,,}" == 'n' ]]; then
+  return 1
+else
+  eval ${ans}
+  return 1
+fi
+
+
+function askKey(){
+  echo -n "Enable Pivate Key '$1' (y/n): " >&2
+  read ans
+  [[ ${ans,,} == 'y' ]] && return 0 || return 1
+}
 
 [[ $(pgrep ssh-agent | wc -l) == 0 ]] && eval $(ssh-agent)
 
@@ -9,8 +27,11 @@ if [ ${ID_DSA} == 1 ]; then
   for x in $(find ~/.ssh/ -iname "*dsa*.pub"); do
     y="${x##*/}"
     priv=${y%%.*}
-    [ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
-    /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+    askKey $priv
+    if [[ "$?" == 0 ]]; then
+      [ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+      /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+    fi
   done
 fi
 
@@ -18,8 +39,11 @@ if [ ${ID_RSA} == 1 ]; then
   for x in $(find ~/.ssh/ -iname "*rsa*.pub"); do
     y="${x##*/}"
     priv=${y%%.*}
-    [ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
-    /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+    askKey $priv
+    if [[ "$?" == 0 ]]; then
+      [ -f /usr/bin/keychain ] && /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+      /usr/bin/keychain -Q -q --nogui ~/.ssh/${priv}
+    fi
   done
 fi
 
@@ -34,3 +58,5 @@ fi
 #fi
 
 [ -f $HOME/.keychain/$HOSTNAME-sh ] && source $HOME/.keychain/$HOSTNAME-sh
+
+
