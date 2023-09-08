@@ -14,6 +14,62 @@ ReD='\033[0;31m'
 GrN='\033[0;32m'
 DeF='\033[0m'
 
+if [[ "${1,,}" =~ (-*help)|(-|/)*\? ]]; then
+  S="  "
+  APP="${0##\/*/}"
+cat << EOF
+Usage:
+${S}${APP} [FILLER] EXEC-APP [EXEC-APP-OPTIONS...]  ([FILLER] EXEC-APP [EXEC-APP-OPTIONS...])...
+${S}Continually start one or multiple-consecutive apps inside screen/tmux.
+
+FILLER:
+${S}Delimiter string between mulitple EXEC-APP and EXEC-APP-OPTIONS.
+${S}This argument is required unless calling a single-app with no EXEC-APP-OPTIONS.
+
+EXEC-APP:
+${S}The app to start.
+
+EXEC-APP-OPTIONS:
+${S}The arguments to pass to the app to start.
+
+Help Options:
+${S}-?, --help                  Show this help (only if first argument!)
+
+Examples:
+${S}${APP} _A ssh host -L 0.0.0.0:80:127.0.0.1:80
+${S}${APP} irssi
+${S}${APP} \; date \; sleep 10s \; traceroute 127.0.0.1
+EOF
+  exit
+fi
+
+#echo "_A ssh vs -L 192.168.1.9:9050:127.0.0.1:9050 _A ssh iv" | sed -r 's/ *_A */\n/g'
+oIFS=$IFS
+IFS=$'\n'
+CMD_ar=($(echo "${@}" | sed -r 's/^'$1' +//g;s/ *'$1' +/\n/g'))
+IFS=$oIFS
+CMD_sz=${#CMD_ar[@]}
+
+while [ 1 ]; do
+for ((i=0; i<$CMD_sz; i++)); do
+  CMD=$(echo "${CMD_ar[$i]}" | awk '{print $1}')
+  ARGS=$(echo "${CMD_ar[$i]}" | sed -r 's/^'$CMD' *(.*)/\1/g')
+eval $CMD $ARGS
+done
+echo -e ">> running again in 5s <<\n" >&2
+sleep 5s
+done
+
+
+exit
+
+
+
+
+
+
+
+
 
 
 for i
@@ -75,58 +131,21 @@ do
   
   WM)
   #if [ "${i}" == "WM" ]; then
-    trap ctrl_c INT
-    function ctrl_c() {
-        echo "** Trapped CTRL-C"
-    }
-    
     while [ 1 ]; do
-      WM="$WM_me"
-      echo -e "executing ${WM} with user ${USER} in 'tty' mode via ssh -tt:"
+	WMFILE="/tmp/bscripts/${USER}-WM.tmp"
+        if [[ -f $WMFILE ]]; then
+	    echo -e "executing $(cat $WMFILE) with user ${USER} in 'tty' mode via ssh -tt:"
 
 #	    ssh -tt localhost "source ${HOME}/.bash_profile && ${HOME}/.bscripts/x $(cat ${WMFILE} )"
 #sleep 1000s
+	    ${HOME}/.bscripts/x $(cat $WMFILE)
 
-      ### get loginctl active TTY's
-      loginctl_tty_ls="$( loginctl   |  awk '$5 ~ /[0-9]+$/ {print $5}' | sort -u | sed -r -n 's/^.+([0-9]+)$/\1/p' )"
-      CUR_VT=$(vt-get-current)
-
-      #+# A: 1
-      #+# L: 2 + 3
-      # => use 2
-      #+# A: 2
-      #+# L: 2 + 3
-      # => use 2
-      #+# A: 3
-      #+# L: 2 + 3
-      # => use 3
-      #+# A: 1
-      #+# L: 
-      # => give warning, chvt ++, re-check loginctl
-      CUR_IN_LS=$(echo "$loginctl_tty_ls" | awk '/^'"${CUR_VT}"'$/')
-      if [[ -n $CUR_IN_LS && $CUR_IN_LS > 0 ]]; then
-        ## current-vt is in the loginct-tty-list
-        echo "_1"
-        vt-set-current $CUR_VT
-        USE_VT=$CUR_VT
-      elif [[ -z "$loginctl_tty_ls" ]]; then
-        ## no active-tty's exist, activating next console vt in hopes one auto-logs-in
-        echo "_2"
-        printf "WARNING: no active tty logged-in, activating next console vt\n"
-        vt-set-current $((CUR_VT+1))
-        break
-      else
-        ## logged-in vt's exist, active is not one of them; use first logged-in vt in the list
-        echo "_3"
-        USE_VT="${loginctl_tty_ls%%$'\n'*}"  ## remove first new-line and all-text afterward (instead of `head -n1`)
-      fi
-      ###
-            
-      ${HOME}/.bscripts/x "$WM"   vt=$USE_VT
-      sleep 10s
-      
-      clear
-      sleep 7s
+	else 
+	    echo "no file $WMFILE"
+	    exit
+	fi
+        clear
+        sleep 7s
     done
   #fi
   ;;
@@ -192,19 +211,7 @@ do
     ;;
 
 
-  GatewayHeartbeat)
-    trap ctrl_c INT
-    function ctrl_c() {
-      echo "** Trapped CTRL-C"
-    }
-    while [ 1 ]; do
-      CGATEWAY=$(ip route | sed -r -n 's/^default [^ ]+ ([^ ]+).*/\1/p')
-      PLOSS=$(ping ${CGATEWAY}  -c 1 -t 5 | sed -r -n 's/^1 .*, ([0-9]+)% packet loss.*/\1/p')
-      [[ $PLOSS -ne 0 ]] && \
-        printf "packetloss on %s from 'ping ${CGATEWAY}  -c 1 -t 5': %s\n"   "$PLOSS"  "$(date +%Y.%m.%d_%H.%M.%S.%Z)"
-      sleep $(( 15 + RANDOM%15 ))s
-    done
-    ;;
+ 
 
 #LINES=`ps aux | grep "${USER}" | grep 'irssi'`
 #printf "%s\n" "${LINES[1]}"

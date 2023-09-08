@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+help () {
+    cat << EOF
+${0##*/}:
+  - requires sudo access to chvt
+  - requires a single argument (the number of the VT to change to)
+EOF
+}
+
+if [[ -n $1 && $1 > 0 ]]; then
+  chvt $1 2>/dev/null  ||  sudo chvt $1
+else
+  help 1>&2
+  exit 1
+fi

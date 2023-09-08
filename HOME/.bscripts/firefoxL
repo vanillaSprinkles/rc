@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+
+APP='firefox'
+HARD_LIMIT='3G'
+SOFT_LIMIT='2G'
+NICE=19
+# -20 is highest prio
+# 0 is default
+# 19 is lowest
+
+systemd-run --unit="$(whoami)-${APP}" --user --scope -p MemoryHigh=${SOFT_LIMIT} -p MemoryMax=${HARD_LIMIT} -p MemorySwapMax=0  nice -n ${NICE}  "${APP}"

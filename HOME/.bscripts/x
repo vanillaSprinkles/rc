@@ -1,21 +1,87 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+## requires:
+#  - vt-get-current
+#  - vt-set-current
+
+## /etc/X11/Xwrapper.config
+# allowed_users = anybody
+# #needs_root_rights = no
+# needs_root_rights = yes
+
+
 
 ## the best way to startx with a specified window manager
 ## next script to allow 2 parameters, one is screen, other is WM; if no screen then first is WM
 # screen hide/detach wm
-# function x
+# function x}
+
+
+DEFAULT_RESOLUTION='1890x950x24'
+
 
 ## wm checker
-wms=( $(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "xcompmgr" && $1 != "screen-vs" && $1 != "screen-vs-long-term" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}') )
-#wms+=$(pacman -Qs display manager | /usr/bin/grep "^local" | sed "s/^local\///" | grep -Ev "^lib.*"  | awk '{if ($1 != "^lib") print $1}'  )
-wms+=( $(pacman -Qs display manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{if ($1 !~ /^lib.*/ ) print $1}'  ) )
+wms=(
+    #$(pacman -Qs window manager | \
+    #    /usr/bin/grep "^local" | \
+    #    sed "s/^local\///" | \
+    #    awk '{ if  ($1 != "obconf" && \
+    #                $1 != "screen" && \
+    #                $1 != "xcompmgr" && \
+    #                $1 != "screen-vs" && \
+    #                $1 != "screen-vs-long-term" && \
+    #                $1 != "xcb-util-wm"  && \
+    #                $1 != "wmctrl-with-undecorated-support" ) \
+    #          print $1}' \
+    #)
 
-for i in ${wms[@]}; do
+    $(pacman -Qs window manager | \
+        sed -r -n 's@^local/([^ ]+) +.*@\1@p;   s@^(.*)-git$@\1@p' | \
+        awk '{ if  ($1 != "obconf" && \
+                    $1 != "screen" && \
+                    $1 != "xcompmgr" && \
+                    $1 != "screen-vs" && \
+                    $1 != "screen-vs-long-term" && \
+                    $1 != "xcb-util-wm"  && \
+                    $1 != "wmctrl-with-undecorated-support" ) \
+              print $1}' \
+    )
+
+    
+)
+
+#wms+=$(pacman -Qs display manager | /usr/bin/grep "^local" | sed "s/^local\///" | grep -Ev "^lib.*"  | awk '{if ($1 != "^lib") print $1}'  )
+wms+=(
+    #$(pacman -Qs display manager | \
+    #      /usr/bin/grep "^local" | \
+    #      sed "s/^local\///" | \
+    #      awk '{ if  ($1 !~ /^lib.*/ ) \
+    #               print $1}' \
+    #    )
+
+    $(pacman -Qs display manager | \
+          sed -r -n 's@^local/([^ ]+) +.*@\1@p;   s@^(.*)-git$@\1@p' | \
+          awk '{ if  ($1 !~ /^lib.*/ ) \
+                   print $1}' \
+        )
+
+)
+
+wms_sz=${#wms[@]}
+for ((j=0;j<$wms_sz; j++)); do
+  #for i in ${wms[@]}; do
+  if [[ "${wms[$j]}" == "kwin" ]]; then wms[$j]="kde" && wms+=("plasma")  ; fi
+  i="${wms[$j]}"
+#  if [[ "$i" == "kwin" ]]; then wms+=("kde")  ; fi
   if [[ "$i" == "i3-git" ]];  then wms+=("i3")  ; fi
   if [[ "$i" == "wmii-hg" ]]; then wms+=("wmii") ; fi
   if [[ "$i" == "xfwm4" ]];   then wms+=("xfwm" "xfce") ; fi
   if [[ "$i" == "lxdm" ]];    then wms+=("lxde"); fi
-##  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
+  if [[ "$i" == "dwm-git" ]]; then wms+=("dwm"); fi
+  if [[ "$i" == "ctwm-git" ]]; then wms+=("ctwm"); fi
+  if [[ "$i" == "enlightenment16" ]]; then wms=( ${wms[@]} "e16" ); fi
+  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "en" ); fi
+  if [[ "$i" == "berry-git" ]]; then wms=( ${wms[@]} "berry" ); fi
 done
 
 sorted=($(printf '%s\n' "${wms[@]}"|sort))
@@ -23,6 +89,8 @@ wms=( ${sorted[@]} )
 
 
 ReD='\033[0;31m';    GrN='\033[0;32m';    DeF='\033[0m';
+
+
 
 startx_helper () {
 
@@ -33,6 +101,18 @@ elif [[ "${2}" == "screen" || "${2}" == "hide" ]]; then
   scr_hid=2
 fi
 scr_hid=0
+
+## manaul override of vt#
+VTnum_arg=$(  echo "$@" | sed -r -n 's/.*(^|\s)vt=?([0-9]+)(\s|$).*/\2/Ip' )
+VT_force_num=""
+if [[ -n $VTnum_arg ]]; then
+    VT_force_num="$VTnum_arg"
+else
+    VT_force_num="$(vt-get-current)"
+fi
+vt-set-current $VT_force_num
+sleep 0.6s
+VT_force="vt${VT_force_num}"
 
 # assign wm/mode appropriate text values
 #wms=`pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "screen-vs" && $1 != "xcb-util-wm") print $1}'`
@@ -75,8 +155,14 @@ else
 
 
 case "${wm}" in
+    'kwin'|'kde'|'plasma'|'plasma-desktop')
+        wm="startkde"
+        ;;
     'i3-git')
 	wm="i3"
+	;;
+    'ctwm-git')
+	wm="ctwm"
 	;;
     'xfce')
 	#wm="startxfce4"
@@ -88,15 +174,24 @@ case "${wm}" in
     'wmii-hg')
 	wm="wmii"
 	;;
-     'enlightenment')
+     'enlightenment'|'en')
 	wm="enlightenment_start"
 	;;
+     'enlightenment16'|'e16')
+         wm="starte16"
+        ;;
     'lxde')
 	wm="startlxde"
 	;;
     'lxdm')
 	wm="startlxde"
 	;;
+    'dwm-git'|'dwm')
+        wm="dwm"
+        ;;
+    'berry-git')
+        wm="berry"
+        ;;
 #    'enlightenment17')
 #	wm="enlightenment_start"
 #	;;
@@ -119,20 +214,140 @@ if [ ! -h $HOME/.xinitrc ]; then
 fi
 touch ${HOME}/.xinitrc.extra
 
-/bin/cp -f ${HOME}/.xinitrc.extra /tmp/${USER}_xinitrc;    echo -e "\n\nexec ${wm}" >> /tmp/${USER}_xinitrc
+/bin/cp -f ${HOME}/.xinitrc.extra /tmp/${USER}_xinitrc
+[[ "${wm}" == "bspwm" ]] && echo -e "\n\nsxhkd &" >> /tmp/${USER}_xinitrc
+echo -e "\n\nexec ${wm}" >> /tmp/${USER}_xinitrc
 
 case ${mode} in
   hide)
-    /usr/bin/startx 1>&- 2>&- &	    ;;
+    /usr/bin/startx  -- ${VT_force}  1>&- 2>&- &	    ;;
   screen)
-    screen -d -m -S "startx_${wm}" /usr/bin/startx	    ;;
+    screen -d -m -S "startx_${wm}" /usr/bin/startx  -- ${VT_force}	    ;;
   *)
-    /usr/bin/startx	    ;;
+      if [[ -z "${DISPLAY}" ]]; then
+          /usr/bin/startx  -- ${VT_force}
+      else
+          
+          # xinit ~/.xinitrc -- /usr/bin/Xvfb  :1  -screen 0 1910x950x24
+
+          DISPLAY=${DISPLAY} /usr/bin/startx -- /usr/bin/Xvfb ${DISPLAY} -screen 0 ${_mode_vres}
+          
+          #/usr/bin/startx  ${DISPLAY}
+          #/usr/bin/startx  ${wm}-session --  ${DISPLAY} ${VT_force}
+          #startx  -- ${DISPLAY}
+          #exec ${wm}
+      fi
+      ;;
+
 esac
 unset DISPLAY
 
 } # end startx_helper
 
+
+
+
+
+
+
 [[ "$1" == "check" ]] &&   echo -en "" &&  for x in ${wms[@]}; do   echo -e -n "${x}  ";     done &&  echo -e "${DeF}" && exit
 
-startx_helper "${@}"
+
+
+
+
+
+
+
+_mode_help=0
+_args_orig=( "$@" )
+_args_mod=()
+_mode_display=''  ## holder for -+d(isplay)?
+_mode_vres="${DEFAULT_RESOLUTION}"
+for (( i=0; i<${#_args_orig[@]}; i++ )); do
+    _aarg="${_args_orig[$i]}"
+
+
+    ## -help  ## give help and break out
+    if [[ "${_aarg}" =~ ^-+h(elp)?$ ]]; then
+        _mode_help=1
+        break
+
+
+    ## -display :#  ## display-number
+    elif [[ "${_aarg}" =~ ^-+d(isplay)?$ ]]; then
+        ((i++))
+        _mode_display="${_args_orig[$i]}"
+    elif [[ "${_aarg}" =~ ^-+d(isplay)?=.+$ ]]; then
+        _position_greedy_equal_location=".${_aarg%=*}" # 'extra' dot index acts as itr++
+        _substring_length="${#_position_greedy_equal_location}"
+        _mode_display="${_aarg:${_substring_length}}"
+
+
+    ## -vres 1915x960x24  ## virtual resolution
+    elif [[ "${_aarg}" =~ ^-+vres$ ]]; then
+        ((i++))
+        _mode_vres="${_args_orig[$i]}"
+    elif [[ "${_aarg}" =~ ^-+vres=.+$ ]]; then
+        _position_greedy_equal_location=".${_aarg%=*}" # 'extra' dot index acts as itr++
+        _substring_length="${#_position_greedy_equal_location}"
+        _mode_vres="${_aarg:${_substring_length}}"
+
+   
+    else
+        _args_mod+=( "${_aarg}" )
+    fi
+done
+
+
+
+
+
+
+
+#startx_helper "${@}"
+
+
+
+## first iteration help
+if [[ "${_mode_help}" -ne 0 ]]; then
+    cat <<EOF
+examples:
+  x   ## lists WM's
+  x openbox   ## launch WM (use 'next' vt# via vt-get-current)
+  x -d(isplay)? :1 -vres ${DEFAULT_RESOLUTION}  openbox  ## opens virtual display with res
+EOF
+    exit
+fi
+
+
+
+
+
+if [[ "${_mode_display}" != '' ]]; then
+    export DISPLAY=${_mode_display}
+    echo "using res: ${_mode_vres}, display ${_mode_display}"
+    #  1915x933x24
+
+    ## if lock file exists, but process does not, nuke the stuff
+    ## todo check ownership of .X#-lock is this owner
+    if [ -e /tmp/.X${DISPLAY/:/}-lock ] && [[ ! -e /proc/$(awk '{print $NF}' /tmp/.X${DISPLAY/:/}-lock) ]]; then
+        rm -f  /tmp/.X${DISPLAY/:/}-lock  /tmp/.X11-unix/X${DISPLAY/:/}
+    fi
+
+#    if [ -e /tmp/.X${DISPLAY/:/}-lock ] && [[ -e /proc/$(awk '{print $NF}' /tmp/.X${DISPLAY/:/}-lock) ]]; then
+#        cat <<EOF >&2
+#Xvfb would-be Fatal server error:
+#(EE) Server is already active for display ${DISPLAY/:/}
+#        If this server is no longer running, remove /tmp/.X${DISPLAY/:/}-lock
+#        and start again.
+#(EE)
+#EOF
+#    else
+#        ( Xvfb ${DISPLAY:-:0} -screen 0 ${_mode_vres} & )
+#    fi
+fi
+
+#sleep 1
+
+startx_helper "${_args_mod[@]}"

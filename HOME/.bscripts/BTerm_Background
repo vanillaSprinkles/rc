@@ -1,6 +1,6 @@
 #!/bin/bash
 
-terms=$(cat ~/.config/bscripts/BTerm.${HOSTNAME}.${USER}.conf)
+terms=$(sed -r '/^(#|;)/d' ~/.config/bscripts/BTerm.${HOSTNAME}.${USER}.conf)
 
 for term in $terms; do
     eval $term

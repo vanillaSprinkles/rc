@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+## https://www.rockyourcode.com/til-how-to-watch-youtube-videos-with-mpv-and-keyboard-shortcuts/
+# mpv --ytdl-format=bestvideo+bestaudio/best --fs --speed=2.5 --af=rubberband=pitch-scale=0.981818181818181 "$(xclip -o)"
+
+## mpv --shuffle 'https://yt'
+
+## playlists https://github.com/mpv-player/mpv/issues/6510
+#Either:
+#mpv --ytdl-raw-options="yes-playlist=" https://www.youtube.com/watch?v=DamuE8TM3xo&list=PLGLfVvz_LVvQ9S8YSV0iDsuEU8v11yP9M
+#
+#Or:
+#Feed mpv the the actual playlist link from youtube in the form of https://www.youtube.com/playlist?list=<id>
+## https://www.reddit.com/r/qutebrowser/comments/lh96vg/how_to_handle_youtube_playlists_with_mpv/
+#mpv use youtube-dl , so use youtube-dl options can auto play playlist, add ytdl-raw-options=yes-playlist= in ~/.config/mpv/mpv.conf
+
+
+
+oARGS=("$@")
+arg_url=''
+arg_yt_list=()
+nARGS=()
+for (( i=0; i<${#oARGS[@]}; i++ )); do
+    aarg="${oARGS[$i]}"
+    if [[ "${aarg}" =~ ^(https?://)?[^/]+/.*watch\?v=.+list=.+ ]]; then
+        arg_yt_list=(--ytdl-raw-options="yes-playlist=")
+    elif [[ "${aarg}" == '--ytdl-raw-options="yes-playlist="' ]]; then
+        continue
+    fi
+
+    if [[ "${aarg}" =~ ^(https?://)?[^/]+/.*watch\?v=.+ ]]; then
+        arg_url="${aarg}"
+    elif [[ "${aarg}" =~ ^(https?://)?([^.]+\.)*youtu.be/.+ ]]; then
+        arg_url="${aarg}"
+    else
+        nARGS+=( "${aarg}" )
+    fi
+done
+
+#cat <<EOF
+#mpv    --hwdec=auto    --ytdl-format=worstvideo+bestaudio/best  --speed=1.0 --af=rubberband=pitch-scale=0.981818181818181  "${oARGS[@]}" "${arg_yt_list[@]}"  "${arg_url}"
+mpv    --hwdec=auto      --speed=1.0 --af=rubberband=pitch-scale=0.981818181818181  "${oARGS[@]}" "${arg_yt_list[@]}"  "${arg_url}"
+#EOF
+
+
+
+
+## mpv's yt-dlp playlist-fun
+
+## filters out deleted entries:
+# yt-dlp --no-warnings -J --flat-playlist --sub-format ass/srt/best --format worstvideo+bestaudio/best --yes-playlist --all-subs -- 'https://www.youtube.com/watch?v=uNKVyoG-AUk&list=PLCwvxDAQ29rSc_c10-s94eWrJ0LAPxn_I&index=7' 
+# jq 'select(.entries[]|.duration != null)'
+
+## single watch:
+# yt-dlp --no-warnings -J --flat-playlist --sub-format ass/srt/best --format worstvideo+bestaudio/best --all-subs --no-playlist -- 'https://www.youtube.com/watch?v=uK0AmgDGpPo'

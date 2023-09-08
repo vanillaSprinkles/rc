@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# https://stackoverflow.com/questions/6318809/how-do-i-grab-an-ini-value-within-a-shell-script
+
+cfg_parser ()
+{
+    ini="$(<$1)"                # read the file
+    ini="${ini//[/\[}"          # escape [
+    ini="${ini//]/\]}"          # escape ]
+    IFS=$'\n' && ini=( ${ini} ) # convert to line-array
+    ini=( ${ini[*]//;*/} )      # remove comments with ;
+    ini=( ${ini[*]/\    =/=} )  # remove tabs before =
+    ini=( ${ini[*]/=\   /=} )   # remove tabs be =
+    ini=( ${ini[*]/\ =\ /=} )   # remove anything with a space around =
+    ini=( ${ini[*]/#\\[/\}$'\n'cfg.section.} ) # set section prefix
+    ini=( ${ini[*]/%\\]/ \(} )    # convert text2function (1)
+    ini=( ${ini[*]/=/=\( } )    # convert item to array
+    ini=( ${ini[*]/%/ \)} )     # close array parenthesis
+    ini=( ${ini[*]/%\\ \)/ \\} ) # the multiline trick
+    ini=( ${ini[*]/%\( \)/\(\) \{} ) # convert text2function (2)
+    ini=( ${ini[*]/%\} \)/\}} ) # remove extra parenthesis
+    ini[0]="" # remove first element
+    ini[${#ini[*]} + 1]='}'    # add the last brace
+    eval "$(echo "${ini[*]}")" # eval the result
+}
+
+cfg_writer ()
+{
+    IFS=' '$'\n'
+    fun="$(declare -F)"
+    fun="${fun//declare -f/}"
+    for f in $fun; do
+        [ "${f#cfg.section}" == "${f}" ] && continue
+        item="$(declare -f ${f})"
+        item="${item##*\{}"
+        item="${item%\}}"
+        item="${item//=*;/}"
+        vars="${item//=*/}"
+        eval $f
+        echo "[${f#cfg.section.}]"
+        for var in $vars; do
+            echo $var=\"${!var}\"
+        done
+    done
+}
+
+
+## usage:
+#_USE_# # parse the config file called 'myfile.ini', with the following
+#_USE_# # contents::
+#_USE_# #   [sec2]
+#_USE_# #   var2='something'
+#_USE_# cfg.parser 'myfile.ini'
+#_USE_# 
+#_USE_# # enable section called 'sec2' (in the file [sec2]) for reading
+#_USE_# cfg.section.sec2
+#_USE_# 
+#_USE_# # read the content of the variable called 'var2' (in the file
+#_USE_# # var2=XXX). If your var2 is an array, then you can use
+#_USE_# # ${var[index]}
+#_USE_# echo "$var2"
+#_USE_#
+
+## http://theoldschooldevops.com/2008/02/09/bash-ini-parser/
+
+
+# https://github.com/albfan/bash-ini-parser/blob/master/bash-ini-parser

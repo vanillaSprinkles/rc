@@ -238,13 +238,16 @@ bind c screen 1
 # screen -t irc 1 /opt/local/bin/irssi
 
 # bash screens
-screen -t "boss" 
+screen -t "boss" 0
 screen -t       root 9 $HOME/.bscripts/_ScreenAppz root
-screen -t "random" 5
-#screen -t "devilspie" 4 $HOME/.bscripts/_ScreenAppz devilspie
+screen -t "random" 7
+screen -t "gw-heartbeat" 6 $HOME/.bscripts/_ScreenAppz GatewayHeartbeat
+screen -t "x11vnc"       5 x11vnc_simple
+#screen -t "devilspie"   4 $HOME/.bscripts/_ScreenAppz devilspie
 screen -t "xcompmgr"  3 $HOME/.bscripts/_ScreenAppz xcompmgr
 screen -t "synergyc"  2 $HOME/.bscripts/_ScreenAppz synergyc
 screen -t       "WM"  1 $HOME/.bscripts/_ScreenAppz WM
+
 #screen 3 
 
 # my vim screenvim: syntax=screen

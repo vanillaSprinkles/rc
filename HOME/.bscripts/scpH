@@ -2,6 +2,6 @@
 
 SCP=/usr/bin/scp
 
-${SCP} -o UserKnownHostsFile=/dev/null ${@}
+echo ${SCP} -o UserKnownHostsFile=/dev/null "${@}"
 
 echo -e "SSH to \"${@}\" END on $(${HOME}/.bscripts/datime)" 1>&2
