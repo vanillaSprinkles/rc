@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+help() {
+  printf "$0: requires sudo access to fgconsole\n"
+}
+
+fgconsole 2>/dev/null  ||  sudo fgconsole

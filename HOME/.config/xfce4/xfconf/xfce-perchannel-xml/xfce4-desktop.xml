@@ -9,7 +9,6 @@
         <property name="image-style" type="int" value="3"/>
         <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
         <property name="last-single-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
-        <property name="last-image-list" type="string" value="/home/phonz/.config/xfce4/desktop/backdrop.list"/>
       </property>
     </property>
   </property>

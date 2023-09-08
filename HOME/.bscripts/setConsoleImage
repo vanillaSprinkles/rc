@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+get_window_size() {
+    # Usage: get_window_size
+    printf '%b' "${TMUX:+\\ePtmux;\\e}\\e[14t${TMUX:+\\e\\\\}"
+    IFS=';t' read -d t -t 0.05 -sra term_size
+    printf '%s\n' "${term_size[1]}x${term_size[2]}"
+}
+
+function setConsoleImage () {
+
+    WALLPAPER="$1"
+    XSCREENRES="${2:-$(awk -F',' '{print $1}' /sys/class/graphics/fb0/virtual_size)}"
+    YSCREENRES="${3:-$(awk -F',' '{print $2}' /sys/class/graphics/fb0/virtual_size)}"
+
+    echo -e '\033[?25l'
+#    setterm -cursor off
+    
+    #ffmpeg -loop_input -vframes 5 -i "${WALLPAPER}" -r 1 -b 1800 -y -s ${XSCREENRES}x${YSCREENRES} /tmp/wall.avi >/dev/null 2>&1
+    #    ffmpeg    -i ${WALLPAPER}   -frames 5  -r 1 -b:v 1800 -y -s ${XSCREENRES}x${YSCREENRES} /tmp/wall.avi 2>&1
+
+    ffmpeg    -i ${WALLPAPER} -vf "scale=${XSCREENRES}:${YSCREENRES}:force_original_aspect_ratio=decrease,pad=${XSCREENRES}:${YSCREENRES}:(ow-iw)/2:(oh-ih)/2"  -frames 5  -r 1 -b:v 1800 -y -s ${XSCREENRES}x${YSCREENRES} /tmp/wall.avi 2>&1
+#    sudo mplayer -vo cvidix -screenw ${XSCREENRES} -screenh ${YSCREENRES} -colorkey 000000 -really-quiet /tmp/wall.avi -fixed-vo -loop 0 >/dev/null 2>&1
+    #    sudo mplayer -vo fbdev2 -screenw ${XSCREENRES} -screenh ${YSCREENRES} -colorkey 000000 -really-quiet /tmp/wall.avi -fixed-vo -loop 0 >/dev/null 2>&1
+    ## below good 2018-11-03
+    sudo mplayer -vo fbdev2 -vf scale -zoom -x ${XSCREENRES} -y ${YSCREENRES} -screenw ${XSCREENRES} -screenh ${YSCREENRES} -colorkey 000000 -really-quiet /tmp/wall.avi -fixed-vo -loop 0 >/dev/null 2>&1
+
+    #sudo mplayer -vo fbdev2 -vf scale -zoom -x ${XSCREENRES} -y ${YSCREENRES}  -colorkey 000000 -really-quiet /tmp/wall.avi -fixed-vo -loop 0 >/dev/null 2>&1
+
+    echo -e '\033[?25h'
+    #    setterm -cursor on
+    clear
+}
+
+
+
+
+setConsoleImage "$@"

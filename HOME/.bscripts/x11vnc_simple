@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+_DEF_ARGS=(-q -speeds 10,5000,1  -nonc -snapfb  -forever -loop  -skip_lockkeys  )
+## x11vnc_simple -d :1 -xkb -modtweak -passwd p@ssw0rd -auth guess -forever -loop -repeat -wait 0 -defer 0 -setdefer -2 -nowait_bog -deferupdate 0 -nonap
+
+_help() {
+    cat <<EOF
+  - passwords may not start with a -
+  - password is first non-defined argument (the 2 below) (unless -pw is used)
+    any remaining arguments get passed to x11vnc
+  - defined optional args (yes regex):
+    -d(isplay)?  :#
+    -pw?|passwd|password  <string>
+
+  ## default arguments:
+    ${_DEF_ARGS[@]}
+
+  examples:
+    ${0} p@ssw0rd  ## x11vnc with password p
+    ${0} p@ssw0rd  -d :1
+    ${0} -d :1 p@ssw0rd
+    ${0} -pw p@ssw0rd  -d :1
+EOF
+    exit
+}
+
+
+
+_args_mod=()
+_args_orig=( "$@" )
+
+_arg_pass=''
+_arg_display=''
+
+for (( i=0; i<${#_args_orig[@]}; i++ )); do
+    shift  ## remove processed arg from existance
+    _aarg="${_args_orig[$i]}"
+
+
+    ## -help  ## give help and break out
+    if [[ "${_aarg}" =~ ^-+h(elp)?$ ]]; then
+        _help
+        break
+
+
+    ## -display :#  ## display-number
+    elif [[ "${_aarg}" =~ ^-+d(isplay)?$ ]]; then
+        ((i++))
+        _arg_display="${_args_orig[$i]}"
+    elif [[ "${_aarg}" =~ ^-+d(isplay)?=.+$ ]]; then
+        _position_greedy_equal_location=".${_aarg%=*}" # 'extra' dot index acts as itr++
+        _substring_length="${#_position_greedy_equal_location}"
+        _arg_display="${_aarg:${_substring_length}}"
+
+
+    ## -pw? p  ## password
+    elif [[ "${_aarg}" =~ ^-+(pw?|passwd|password)$ ]]; then
+        ((i++))
+        _arg_pass="${_args_orig[$i]}"
+    elif [[ "${_aarg}" =~ ^-+(pw?|passwd|password)=.+$ ]]; then
+        _position_greedy_equal_location=".${_aarg%=*}" # 'extra' dot index acts as itr++
+        _substring_length="${#_position_greedy_equal_location}"
+        _arg_pass="${_aarg:${_substring_length}}"
+
+   
+    else
+        _args_mod+=( "${_aarg}" )
+    fi
+done
+
+
+
+if [[ -n "${_arg_display}" ]]; then
+    _args_mod+=( '-display' "${_arg_display}" )
+fi
+
+if [[ -n "${_arg_pass}" ]]; then
+    _args_mod=( "${_arg_pass}"  "${_args_mod[@]}" )
+elif [[ "${_args_mod[0]:0:1}" == '-' ]]; then
+    ## set default pass to p when no password is set, and flag/arguments exist
+    _args_mod=( "p"  "${_args_mod[@]}" )
+fi
+
+
+x11vnc -passwd "${_args_mod[0]:-p@ssw0rd}"  ${_DEF_ARGS[@]}   "${_args_mod[@]:1}"
+#x11vnc -passwd ${1:-drp}  -vencrypt only -ssl
+

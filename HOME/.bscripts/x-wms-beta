@@ -1,0 +1,576 @@
+#!/bin/sh
+#!/usr/bin/env bash
+
+dquote_escape(){
+    for x in "${@}"; do
+        printf '%s '  "${x//\"/\\\"}"
+    done
+}
+
+
+
+wm_mangle_names=(
+    ## "some_long_name=name_replacement"     "short; names; delin by combination of spaces or semicolons or both"    'custom-start-command  "ar rg1" "arg2"'
+
+
+    "kwin=kde"     " kde   plasma "        #'startkde'
+
+    "xfwm4"        " ;xfwm ;   xfce"       #'xfce4-session'
+    
+    "enlightenment"    "en"
+    "enlightenment16"  "e16"
+
+    "i3-wm=i3"       "i3"
+    "wmii-hg=wmii"   "wmii"
+
+    "lxdm"         "lxde"
+)
+
+arg_var_ar_sucks=(  ## "args=openbox|$(for ((i=0; i<${#arg_var[@]}; i++)); do echo "${arg_var[i]}"; done)"
+    "--config-file"
+    "~/.config/openbox/lxde-rc.xml"
+    "--startup"
+    '/bin/bash -c "_A=("a a" "b b" "c cc"); echo "${_A[1]}" >>/tmp/wtf"'
+)
+arg_var="$(cat <<'EOF'  ## also terible
+--config-file
+~/.config/openbox/lxde-rc.xml
+--startup
+/bin/bash -c "_A=(\"a a\" \"b b\" \"c cc\"); echo \"\${_A[1]}  \$(date)\" >>/tmp/wtf"
+EOF
+       )"
+ 
+
+wm_mangle_name_binary=(
+
+    ## name=odd-name=new-name|alt-name|a-name
+    ## bin=binary-name
+    ## args='maybe "some ards" here
+
+    "alts=kwin=kde|plasma|plasma-desktop"
+    "bin=kde|startkde"
+    "args=kde|--fla 'multi thing'"
+
+    "alts=xfwm4|xfce|xfwm"
+    "bin=xfwm4|xfwm4-session"
+
+    "alts=enlightenment=en|enlightenment"
+    "bin=en|enlightenment_start"
+    # "alts=enlightenment|en"
+    # "bin=enlightenment|enlightenment_start"
+    ##"alts=en|enlightenment"
+    ##"bin=en|enlightenment_start"
+
+    "alts=enlightenment16|e16"
+    "bin=enlightenment16|starte16"
+
+    "alts=openbox"
+    ## WORKS; notice no quotes around last argument
+    "args=openbox|$(
+        cat <<EOF | sed -r 's/^ +//g;'
+            --config-file
+            ~/.config/openbox/lxde-rc.xml
+            --startup
+            /bin/bash -c '_A=("a a" "b b" "c cc"); echo "\${_A[1]} \$(date)" >> /tmp/wtf'
+EOF
+    )"
+
+    ## WORKS; notice 'EOF' and no escaped \${vars}
+    "args=openbox|$(
+        cat <<'EOF' | sed -r 's/^ +//g;'
+            --config-file
+            ~/.config/openbox/lxde-rc.xml
+            --startup
+            /bin/bash -c '_A=("a a" "b b" "c cc"); echo "${_A[1]} $(date)" >> /tmp/wtf'
+EOF
+    )"
+
+    "args=openbox|$(
+        cat <<'EOF' | sed -r 's/^ +//g;'
+            --config-file
+            ~/.config/openbox/lxde-rc.xml
+            --startup
+            lxsession
+EOF
+    )"
+
+    
+
+    #"args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup \"$(dquote_escape /bin/bash -c '_A=("a a" "b b" "c cc"); echo "${_A[1]}" >>/tmp/wtf') \" "
+
+    
+    #'args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup "/bin/bash -c "_A=(\"a a\"  \"b b\" \"c cc\"); echo \"${_A[1]}\" >> /tmp/wtf" '
+
+
+    #"args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup '/bin/bash -c $(dquote_escape "date >> wtf " ) ' "
+# "_A=("a a" "b b" "c cc"); echo "\${_A[1]}" >>/tmp/wtf'  "
+
+
+    #"args=openbox|$(for ((i=0; i<${#arg_var[@]}; i++)); do echo "${arg_var[i]}"; done)"
+    #${arg_var[@]}"
+    
+    ## works
+    # "args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup '/bin/bash -c \"_A=(\\\"a a\\\" \\\"b b\\\" \\\"c cc\\\"); echo \\\"\${_A[1]}  \$(date)\\\" >>/tmp/wtf\" ' " ## lots of escapes; hate it
+
+    # "args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup  \"/bin/bash -c 'date >> /tmp/wtf' \"  "
+    # "args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup  '/bin/bash -c \"date >> /tmp/wtf\" '  "
+    # "args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup  '/bin/bash -c \"date >> /tmp/wtf\" '  "
+
+    ## works
+    # 'args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup '\''/bin/bash -c "date >> /tmp/wtf"  '\'     ## fugly
+    # 'args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup "/bin/bash -c '"'date >> /tmp/wtf'"' "  '    ## fugly
+
+    # 'args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup "date >> /tmp/wtf"'
+
+
+    
+#    "args_=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup \"/bin/bash -c '_A=(\"a a\" \"b b\"); echo \"\${_A[1]}\" >>/tmp/wtf'\""
+
+    
+    ## testing maks a multi-line string then simply echo's it; not exactly a 'list'
+    ## WORKS; notice no quotes around last argument
+    "testing=openbox|$(
+        cat <<EOF | sed -r 's/^ +//g;'
+            --config-file
+            ~/.config/openbox/lxde-rc.xml
+            --startup
+            /bin/bash -c '_A=("a a" "b b" "c cc"); echo "\${_A[1]} \$(date)" >> /tmp/wtf'
+EOF
+    )"
+
+    ## WORKS; notice 'EOF' and no escaped \${vars}
+    "testing=openbox|$(
+        cat <<'EOF' | sed -r 's/^ +//g;'
+            --config-file
+            ~/.config/openbox/lxde-rc.xml
+            --startup
+            /bin/bash -c '_A=("a a" "b b" "c cc"); echo "${_A[1]} $(date)" >> /tmp/wtf'
+EOF
+    )"
+    
+
+    
+    "alts=i3-wm=i3"
+    "bin=i3|i3"
+
+    "alts=wmii-hg=wmii"
+    "bin=wmii|wmii"
+
+    "alts=lxdm|lxde"
+    "bin=lxdm|startlxde"
+
+    
+
+
+
+    #"name=kwin=kde|plasma|plasma-desktop"
+    #"bin=startkde"
+
+    #"name=xfwm4|xfce|xfwm"
+    #"bin=xfce4-session"
+
+    #"name=enlightenment|en"
+    #"bin=enlightenment_start"
+
+    #"name=enlightenment16|e16"
+    #"bin=starte16"
+
+    #"name=i3-wm=i3"
+
+    #"name=wmii-hg=wmii"
+
+    #"name=lxde|lxdm"
+    #"bin=startlxde"
+
+)
+
+
+
+
+
+ReD='\033[0;31m';    GrN='\033[0;32m';    DeF='\033[0m';
+
+
+## pull local installs for 'window manager' and 'display manager'
+## sanitize results with sed (strip 'local/', remove '-git')
+## remove unnecessairy items
+wms=(
+    $(pacman -Qs 'window manager|display manager' | \
+        sed -r -n '/^ /d;   s@^local/([^ ]+)(-git)? +.*@\1@g;   s@^(.*)(-git)$@\1@g; p' | \
+        awk '{ if  \
+               ( \
+                 $1 != "obconf" && \
+                 $1 != "screen" && \
+                 $1 != "xcompmgr" && \
+                 $1 != "screen-vs" && \
+                 $1 != "screen-vs-long-term" && \
+                 $1 != "xcb-util-wm"  && \
+                 $1 != "wmctrl-with-undecorated-support" && \
+                 $1 !~ /^lib.*/    \
+               ) \
+               print $1 \
+             }'
+    )
+)
+
+
+
+declare -A wms_ass_alts
+declare -A wms_ass_args
+declare -A wms_ass_testing
+
+declare -A wms_ass ##  wms_ass[wm-name]=wm-binary
+while IFS=$'\n' read -r awm; do
+    wms_ass["${awm}"]="${awm}"
+    wms_ass_alts["${awm}"]="${awm}"
+done < <( for x in ${wms[@]}; do printf '%s\n' "$x"; done )
+#_OFF_use_array_#    pacman -Qs 'window manager|display manager' | \
+#_OFF_use_array_#        sed -r -n '/^ /d;   s@^local/([^ ]+)(-git)? +.*@\1@g;   s@^(.*)(-git)$@\1@g; p' | \
+#_OFF_use_array_#        awk '{ if  \
+#_OFF_use_array_#               ( \
+#_OFF_use_array_#                 $1 != "obconf" && \
+#_OFF_use_array_#                 $1 != "screen" && \
+#_OFF_use_array_#                 $1 != "xcompmgr" && \
+#_OFF_use_array_#                 $1 != "screen-vs" && \
+#_OFF_use_array_#                 $1 != "screen-vs-long-term" && \
+#_OFF_use_array_#                 $1 != "xcb-util-wm"  && \
+#_OFF_use_array_#                 $1 != "wmctrl-with-undecorated-support" && \
+#_OFF_use_array_#                 $1 !~ /^lib.*/    \
+#_OFF_use_array_#               ) \
+#_OFF_use_array_#               print $1 \
+#_OFF_use_array_#             }' \
+#_OFF_use_array_#            #| LC_ALL=C sort -u
+#_OFF_use_array_#)
+
+
+
+
+
+
+
+#set -x
+
+wms_sz=${#wms[@]}
+for ((i=0; i<$wms_sz; i++)); do
+    iv="${wms[$i]}"
+
+    for (( j=0; j<${#wm_mangle_names[@]}; j++ )); do
+        jv="${wm_mangle_names[$j]}"
+        find_wm="${jv%%=*}"
+        find_wm="${find_wm// /}"
+        replace_wm="${jv##*=}"
+        #replace_wm="${replace_wm// /}"
+
+        if [[ "${iv,,}" == "${find_wm,,}" ]]; then
+
+            jv="${wm_mangle_names[((j+1))]}"
+            alts=($(sed -r 's/ +;? */\n/g'  <<<"${jv}"))  ## can be time-taxing
+           
+            wms[$i]="${replace_wm// /}"  ## always set it (or always check if find_wm!=replace_wm and set sometimes? meh)
+            wms+=("${alts[@]}")
+
+            unset wm_mangle_names[$j] wm_mangle_names[$((j+1))]
+            #if [[ $j -ne 0 ]]; then
+            wm_mangle_names=(  "${wm_mangle_names[@]:0:$j}"  "${wm_mangle_names[@]:$((j+1))}"  )
+            #else
+            #    wm_mangle_names=(  "${wm_mangle_names[@]:$((j+1))}"  )
+            #fi
+
+            break
+        fi
+        ((j++))
+    done
+
+done
+
+
+
+#_OLD_### 2nd iteration
+#_OLD_#wms_sz=${#wms[@]}
+#_OLD_#wms_sz=0
+#_OLD_#for ((i=0; i<$wms_sz; i++)); do
+#_OLD_#    iv="${wms[$i]}"
+#_OLD_#
+#_OLD_#    for (( j=0; j<${#wm_mangle_name_binary[@]}; j++ )); do
+#_OLD_#        jv="${wm_mangle_name_binary[$j]}"
+#_OLD_#
+#_OLD_#        if [[ "${jv%%=*}" == "name" ]]; then
+#_OLD_#            unset jv
+#_OLD_#            find_wm="${jv#*name=}"  ## strip name=
+#_OLD_#            find_wm="${find_wm%%=*}"  ## keep left side, strip alts if jv=name=wm-name=new-name|alts
+#_OLD_#            find_wm="${find_wm%%|*}"  ## keep left side, strip alts if jv=wm-name|alt1|alt2
+#_OLD_#
+#_OLD_#            if [[ "${iv,,}" == "${find_wm,,}" ]]; then
+#_OLD_#                printf '' # con
+#_OLD_#            fi
+#_OLD_#            ((j++))
+#_OLD_#    
+#_OLD_#        elif [[ "${jv%%=*}" == "bin" ]]; then
+#_OLD_#            printf ''
+#_OLD_#        elif [[ "${jv%%=*}" == "args" ]]; then
+#_OLD_#            printf ''
+#_OLD_#        fi
+#_OLD_#
+#_OLD_#        echo "jv=${jv}"
+#_OLD_#        echo "${find_wm}"
+#_OLD_#        echo "${replace_wm}"
+#_OLD_#        
+#_OLD_#        #replace_wm="${replace_wm// /}"
+#_OLD_#
+#_OLD_#        if [[ "${iv,,}" == "${find_wm,,}" ]]; then
+#_OLD_#
+#_OLD_#            jv="${wm_mangle_names[((j+1))]}"
+#_OLD_#            alts=($(sed -r 's/ +;? */\n/g'  <<<"${jv}"))  ## can be time-taxing
+#_OLD_#           
+#_OLD_#            wms[$i]="${replace_wm// /}"  ## always set it (or always check if find_wm!=replace_wm and set sometimes? meh)
+#_OLD_#            wms+=("${alts[@]}")
+#_OLD_#
+#_OLD_#            unset wm_mangle_names[$j] wm_mangle_names[$((j+1))]
+#_OLD_#            #if [[ $j -ne 0 ]]; then
+#_OLD_#            wm_mangle_names=(  "${wm_mangle_names[@]:0:$j}"  "${wm_mangle_names[@]:$((j+1))}"  )
+#_OLD_#            #else
+#_OLD_#            #    wm_mangle_names=(  "${wm_mangle_names[@]:$((j+1))}"  )
+#_OLD_#            #fi
+#_OLD_#
+#_OLD_#            break
+#_OLD_#        fi
+#_OLD_#        ((j++))
+#_OLD_#    done
+#_OLD_#
+#_OLD_#done
+
+
+
+
+
+
+
+
+
+
+# declare -A wms_ass ##  wms_ass[wm-name]=wm-binary
+## 3nd iteration
+for (( m=0; m<${#wm_mangle_name_binary[@]}; m++ )); do
+    mv="${wm_mangle_name_binary[$m]}"
+    mkey="${mv%%=*}"  ## mangle key: (alts, bin, args)
+    mval="${mv#*=}"    ## mangle 
+    # unset mv
+    
+    #echo "_ ${mv} _"
+
+    case "${mkey,,}" in
+        "alts")
+            alts="${mval##*=}"
+            #_off_# IFS='|' read -r -a alts_ar <<<"${mval##*=}"  ## cannot assign list to array member
+
+            find_wm="${mval%%|*}"  ## strip alts; leaves 'wm-name=new-name' or 'wm-name'
+
+            wm_newname="${find_wm##*=}"
+            #_off_#wm_newname="${alts_ar[0]}"  ## cannot assign list to array member
+
+            find_wm="${find_wm%%=*}"
+
+          #  echo "     alts:  ${alts}"
+          #  #_off_#echo "     alts:  ${alts_ar[@]}"  ## cannot assign list to array member
+          #  echo "     find_wm: ${find_wm}"
+          #  echo "     wm-new:  ${wm_newname}"
+
+            ## if find_wm key exists, then do the following
+            if [[  "${!wms_ass[@]}"  =~  (^| )"${find_wm,,}"( |$)  ]]; then
+
+                ## if find_wm != wm_newname; keep-old-bin, add new wm-key to wms_ass
+                old_bin="${wms_ass["${find_wm}"]}"
+                unset  wms_ass["${find_wm}"]  wms_ass_alts["${find_wm}"]
+                wms_ass["${wm_newname}"]="$old_bin"
+                unset old_bin find_wm
+
+                ## add alts_ar to wms_ass_alts
+                #_off_# wms_ass_alts["${wm_newname}"]=( "${alts_ar[@]}" )  ## cannot assign list to array member
+                wms_ass_alts["${wm_newname}"]="${alts}"
+                unset alts wm_newname
+            fi
+        ;;
+        "bin")
+            ass_key="${mval%%|*}"
+            if [[  "${!wms_ass[@]}"  =~  (^| )"${ass_key}"( |$)  ]]; then
+                wms_ass["${ass_key}"]="${mval#*|}"
+                unset ass_key
+            fi
+        ;;
+        "args")
+            ass_key="${mval%%|*}"
+            if [[  "${!wms_ass[@]}"  =~  (^| )"${ass_key}"( |$)  ]]; then
+                wms_ass_args["${ass_key}"]="${mval#*|}"
+                unset ass_key
+            fi
+        ;;
+        testing)
+            ass_key="${mval%%|*}"
+            wms_ass_testing["${ass_key}"]="${mval#*|}"
+            unset ass_key
+        ;;
+        *)
+            #echo "mv: ${mv}"
+            #echo "   mkey: ${mkey}"
+            #echo "   mval: ${mval}"
+            #echo "    ass_key: ${mval%%|*}"
+            #echo "    ass_val: ${mval#*|}"
+            #echo "should never get here; input value: ${mv}"
+            #exit 1
+            ;;
+    esac
+            
+        
+       
+done
+
+
+
+
+## ass method outputs
+
+if [[ -z "$1" ]]; then
+    echo -e "${ReD}pacquery-wm: invalid operand\n${DeF}Useage:  pacquery-wm  [window manger]"
+
+    IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+    printf '%s\n  '  "Window Managers:";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
+    exit 1
+elif [[ "$@" =~ (^|\s)-+(print|all|list)(\s|$) ]]; then
+    IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+    for x in   ${alts[@]}  ; do printf '%s\n' "${x}"; done #| LC_ALL=C sort -u
+    exit 0
+fi
+
+arg_wm="${1,,}"
+bin="${wms_ass["${arg_wm}"]}"
+alts="${wms_ass_alts["${arg_wm}"]}"
+
+args="${wms_ass_args["${arg_wm}"]}"
+#IFS=$'\n' args=(  $(xargs -n1 <<<"${wms_ass_args["${arg_wm}"]}") )   ## makes an array (1 arg per element)
+
+#IFS=$'\n' args=( "$(xargs -n1 <<<"${wms_ass_args["${arg_wm}"]}")" )  ## makes a multi-line string
+testing="${wms_ass_testing["${arg_wm}"]}"
+
+
+#printf  '%s\n'  "${bin}"
+#for (( i=0; i<${#args[@]}; i++ )); do printf '%s\n'  "${args[i]}"; done   ## works for array (1 arg per element)
+#printf  '%s\n%s\n'  "${bin}"  "${testing}"  ## works for multi-line strings
+
+
+printf  '%s\n'  "${bin}"
+if [ -n "${args}" ]; then
+    printf  '%s\n'  "${args}"  ## works for multi-line strings
+fi
+
+exit
+
+#_OFF_no_clue_#if [[ -z "${wms_ass["${1,,}"]}" ]]; then
+#_OFF_no_clue_#    for wm_key in ${!wms_ass_alts[@]}; do
+#_OFF_no_clue_#        echo  "  __ ${wm_key} __  ${wms_ass_alts[${wm_key}]}"
+#_OFF_no_clue_#        if [[ "${wms_ass_alts[${wm_key}]}" =~  (^|\|)"${1,,}"(\||$) ]]; then
+#_OFF_no_clue_#            #echo "${wm_key}"
+#_OFF_no_clue_#            bin="${wms_ass[$wm_key]}"
+#_OFF_no_clue_#            #alts="${wms_ass_alts[$wm_key]}"
+#_OFF_no_clue_#            args="${wms_ass_args[$wm_key]}"
+#_OFF_no_clue_#            testing="${wms_ass_testing[$wm_key]}"
+#_OFF_no_clue_#            break
+#_OFF_no_clue_#        fi
+#_OFF_no_clue_#        #IFS='|' read -r -a alts <<<"${wms_ass_alts[${wm_key}]}"
+#_OFF_no_clue_#        #echo ${alts[@]}
+#_OFF_no_clue_#        
+#_OFF_no_clue_#    done
+#_OFF_no_clue_#
+#_OFF_no_clue_#fi
+
+
+#args_2="ha $(cat <<EOF
+#--args "a a"  "b b"
+#"c c"
+#EOF
+#)"
+
+#printf '%s\n' "$args_2"
+#args_openbox=( "--config-file" "~/.config/openbox/lxde-rc.xml" )
+echo "bin:  ${bin}"
+#echo "alts: ${alts}"
+#echo "args: ${args}"
+#echo -e "args: $(for x in "${args}"; do echo $x; done)"
+echo "args: ${args}"
+
+echo "testing:"
+echo "$testing"
+#printf '%q\n' "${args}"
+
+
+# xauth add ":2" MIT-MAGIC-COOKIE-1  $(/usr/bin/mcookie )
+# if :2 or  ( $authdisplay $hostname/unix$authdisplay; ) exist in  xauth list <itr>; then use add $displayname . $mcookie  ## startx uses . ?
+## xauth remove $hostname/unix$authdisplay (or  :N  )
+## xauth add :<display>  <protocol name>  <hex key>
+
+
+
+
+
+
+
+#IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+#echo "${wms_ass_alts[@]}"
+#for x in  ${!wms_ass[@]}  ${alts[@]}  ; do echo $x; done | sort -u
+
+## dump all ## for x in   ${alts[@]}  ; do echo $x; done #| LC_ALL=C sort -u
+#echo "${wms_ass_alts[@]}"
+
+
+#match=0
+#for alt in ${alts[@]}; do
+#    if [[ "$@" =~  (^| )-+(print|all|list)( |$) ]]; then
+#        echo "${alt}"
+#        continue
+#    fi
+#    if [[ "${alt,,}" == "${1,,}" ]]; then
+#        echo "${alt}"
+#        match=1
+#        break
+#    fi
+#done
+
+
+
+
+
+exit
+
+
+
+
+
+
+
+## first iteration outputs
+
+sorted=($(LC_ALL=C printf '%s\n' "${wms[@]}"|sort -u))
+wms=( ${sorted[@]} )
+unset sorted wms_sz
+
+
+
+match=0
+for (( i=0; i<${#wms[@]}; i++ )); do
+    printf ''
+    wm="${wms[i],,}"
+    if [[ "$@" =~  (^| )-+(print|all|list)( |$) ]]; then
+        echo "$wm"
+        continue
+    fi
+    if [[ "$wm" == "${1,,}" ]]; then
+        match=1
+        break
+    fi
+done
+
+
+#echo -e "${ReD}pacquery-wm: invalid operand\n${DeF}Useage: pacquery-wm  <check>  |  <window manger> [hide | screen]"
+#echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+
+
+

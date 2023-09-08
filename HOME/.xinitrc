@@ -1,1 +1,1 @@
-/tmp/phonz_xinitrc
+/tmp/${USER}_xinitrc

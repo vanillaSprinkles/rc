@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+DOCKER=/usr/bin/docker
+
+sudo $DOCKER "${@}"

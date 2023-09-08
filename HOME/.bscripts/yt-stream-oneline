@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# curl 'https://www.youtube.com/watch?v=BaW_jenozKc' | perl -ne 'print if s/.*ytplayer\.config\s*=\s*(\{.+?});ytplayer.*/\1/' | jq -r '.args.player_response | fromjson | .streamingData.formats | max_by(.bitrate) | .url'
+
+regex='https?://(www\.)?youtube\.com/watch\?.*v=.*$'
+  # https://www.youtube.com/watch?v=UxxajLWwzqY  # icona pop
+  # https://www.youtube.com/watch?v=1ltcDfZMA3U  # unavail
+  # https://www.youtube.com/watch?v=BaW_jenozKc  # works
+if [[ "${1,,}" =~ ${regex} ]]; then
+  cat <<EOF
+  # curl -qs "${1}" | perl -ne 'print if s/.*ytplayer\.config\s*=\s*(\{.+?});ytplayer.*/\1/' | jq -r '.args.player_response | fromjson | .streamingData.formats | max_by(.bitrate) | .url'
+EOF
+
+  curl -qs "${1}" | perl -ne 'print if s/.*ytplayer\.config\s*=\s*(\{.+?});ytplayer.*/\1/' | jq -r '.args.player_response | fromjson | .streamingData.formats | max_by(.bitrate) | .url'
+else
+  cat <<EOF >&2
+  arg1 should be a yt url, such as: 
+      # https://www.youtube.com/watch?v=UxxajLWwzqY  # icona pop
+      # https://www.youtube.com/watch?v=1ltcDfZMA3U  # unavail
+
+EOF
+fi

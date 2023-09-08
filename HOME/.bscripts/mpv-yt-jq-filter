@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+
+YT_DL_APP=yt-dlp
+#YT_DL_APP=youtube-dl
+
+
+## pass all params to yt-dlp
+## delete playlist entries with null duration (aka [Deleted video] )
+## TODO: mimic youtube-dl watch video json payload
+
+if [[ "$1" =~ ^--version$ ]]; then
+    ${YT_DL_APP} "${_ARGS[@]}"
+else
+
+    _index=-1
+    _id=-1
+    id_regex_lst=(
+        "https?://w?w?w?\.?youtu\.be/([a-zA-Z0-9\-_]+).*"
+        "https?://w?w?w?\.?youtube\.com/v/([a-zA-Z0-9\-_]+).*"
+        "/watch.*[?&]v=([a-zA-Z0-9\-_]+).*"
+        "/embed/([a-zA-Z0-9\-_]+).*"
+        "-([a-zA-Z0-9\-_]+)\."
+    )
+    index_regex_lst=(
+        "[?&]index=([0-9]+)"
+    )
+
+    for x in ${id_regex_lst[@]}; do
+        _regex=${x//!/\\!}
+        _r=$(sed -r -n 's!.*'"${_regex}"'.*!\1!p' <<<"$@")
+        if [[ -n "${_r}" ]]; then _id="${_r}"; fi
+    done
+
+    for x in ${index_regex_lst[@]}; do
+        _regex=${x//!/\\!}
+        _r=$(sed -r -n 's!.*'"${_regex}"'.*!\1!p' <<<"$@")
+        if [[ -n "${_r}" ]]; then _index="${_r}"; fi
+    done
+
+
+    ## 
+
+    _playlist_data=$(
+        ${YT_DL_APP} "$@" | jq -r '
+  if (._type == "playlist") then
+       del(.requested_entries)|del(.thumbnails)|del(.epoch) |
+       (.entries[]?) |= . + { "url": .id }
+  else 
+    .
+  end
+'
+        #~/tmp/mpv-ytdlp/outs.yt-dlp.json 
+                  )
+
+    
+    
+    playlist_len=$(jq -Mr '.entries[].id' <<<"${_playlist_data}" | wc -l)
+    _goto=-1
+    
+    if [[ "${_index}" != '-1' && "${_id}" != '-1' ]]; then
+        ## if index and id are both defined, get the index-of-id, then if multiple id's match, get the index-number with the smallest delta from provided id (IE: prioritizes id over index)
+        ## if _index > size of playlist, wrap around to normalize
+        _goto=$(( $_index % $playlist_len ))
+
+        #_match_id_smallest_delta_from_index="$(jq -Mr '.entries[].id' <<<"${_playlist_data}" | awk  'function abs(x){return ((x < 0.0) ? -x : x)}  /'${_id}'/ {print abs(NR-'${_goto}')}'  | sort -n | head -n1 )"
+        _match_id_smallest_delta_from_index="$(jq -Mr '.entries[].id' <<<"${_playlist_data}" | awk  'function abs(x){return ((x < 0.0) ? -x : x)}  /'${_id}'/ {print abs(NR-'${_goto}'), NR-'${_goto}'}'  | sort -n -k1 | head -n1 | awk '{print $NF}' )"
+        #echo $_goto >&2
+        #echo $_match_id_smallest_delta_from_index >&2
+        _goto=$((_match_id_smallest_delta_from_index + _goto))
+
+
+    elif  [[ "${_index}" != '-1' ]]; then
+        _goto=$(( $_index % $playlist_len ))
+
+        
+    elif  [[ "${_id}" != '-1' ]]; then
+        ## if only id, get first match of id
+        _goto=$(jq -Mr '.entries[].id' <<<"${_playlist_data}" | awk  '/'${_id}'/ {print NR}'  | sort -n | head -n1 )
+
+    fi
+    
+
+    if [[ "${_goto}" != '-1' ]]; then
+        _playlist_data=$(   jq -cr '.entries |=  .['$((_goto-1))':]  + .[0:'$((_goto-1))']'  <<<"${_playlist_data}"  |
+                                jq -r '
+                                if (._type == "playlist") then
+                                  del(.entries[] | select( .duration == null) )
+                                else
+                                  .
+                                end
+                                '
+                      )
+    fi
+
+    printf   '%s'   "${_playlist_data}"
+    
+exit
+
+
+
+    ## prefer index over id
+    if [[ ${_index} > -1 ]]; then
+        _goto=$(( $_index % $playlist_len ))
+        _playlist_data=$(   jq -cr '.entries |=  .['$((_goto-1))':]  + .[0:'$((_goto-1))']'  <<<"${_playlist_data}"  )
+
+        ## 1 at a time, slow af
+        #for (( i=0; i <= _goto; i++ )); do
+        #    _playlist_data=$(   jq -cr '.entries |=  .[1:]  + [.[0]]'  <<<"${_playlist_data}"  )
+        #done
+
+
+
+    #TODO?## never hit here - but if index and id are both defined, get the index-of-id, then if multiple id's match, get the number with the smallest delta from provided id
+    #elif [[ ${_index} > -1 && ${_id} != -1 ]]; then
+
+    elif [[ ${_id} != "-1" ]]; then
+        line_match_id_smallest_delta="$(jq -Mr '.entries[].id' <<<"${_playlist_data}" | awk  'function abs(x){return ((x < 0.0) ? -x : x)}  /'${_id}'/ {print abs(NR-'${_index}')}'  | sort -n | head -n1 )"
+        echo "$_lines_matching_id"
+
+        #_lines_matching_id="$(jq -cr '.entries[].id' <<<"${_playlist_data}" | awk  '/'${_id}'/ {print NR-'${_index}'}')"
+        #echo "$_lines_matching_ids"
+exit
+
+
+    ## else do nothing
+    #else
+     
+    fi
+    #i=1
+    #while (( ${i} <= ${playlist_len} )); do
+    #    jq -Mr '.entries[0].id' <<<"${_playlist_data}"
+    #    ((i++))
+    #done
+
+    echo "${_playlist_data=}"
+    
+    exit
+    ${YT_DL_APP} "$@" | jq -cr '
+  if (._type == "playlist") then
+       del(.requested_entries)|del(.thumbnails)|del(.epoch) |
+       del(.entries[] | select( .duration == null) ) |
+       (.entries[]?) |= . + { "url": .id }
+  else 
+    .
+  end
+'
+fi
+
+
+
+exit
+
+
+#yt-dlp "$@" | jq -Mc '. as $raw | try   select(.entries[]|.duration != null) catch $raw' | jq -Mc 'del(.requested_entries)'
+#yt-dlp "$@" | jq -Mc '. as $raw |  try  select(.entries[]|.duration != null)  catch $raw | del(.requested_entries)'
+#yt-dlp "$@" | jq -Mc '. as $raw | ry   (select(.entries[]|.duration != null)|del(.requested_entries))  catch $raw'
+
+
+
+
+
+#yt-dlp "$@" | jq '. as $raw |  try   (select(.entries[]|.duration != null)|del(.requested_entries)|del(.thumbnails)|del(.epoch))  catch $raw'
+
+## works, not best
+#     select(.entries[]|.duration != null) | del(.requested_entries)|del(.thumbnails)|del(.epoch) | (.entries[]?|.url ) |= sub("^[^=]+=";"")
+
+## "works" - duplicates data by number of elements it touches
+#     select(.entries[]|.duration != null) | del(.requested_entries)|del(.thumbnails)|del(.epoch) | (.entries? |= map(. + { "url": .id} ) )
+
+## "works" - hard codes .entries[]?.url to fixed-text
+#     select(.entries[]|.duration != null) | del(.requested_entries)|del(.thumbnails)|del(.epoch) | (.entries[]?.url) |= "poo"
+
+
+#cat ~/tmp/mpv-ytdlp/outs.yt-dlp.json | jq '
+#     ( select(.entries[]|.duration != null) | del(.requested_entries)|del(.thumbnails)|del(.epoch) ) | (.entries[]?) |= . + { "url": .id }
+# |   (.entries[]?) |= . + { "url": .id }
+
+## keep only map keys: .id, .url
+#       (.entries[]?) |= with_entries( select([.key] | inside(["id","url"])
+#cat ~/tmp/mpv-ytdlp/s2 | jq '
+
+## jq move 0th array item to last-element
+# jq '. |= [.[1:], .[0]]'
+# jq '.' <<<'[{"a":1},{"b":2},{"c":3}]'  | jq '.|=  .[1:]  + [.[0]]    '
+
+
+## dunno why this fails to purge some entries (need to call it like 4 times) - some of the data entries are duplicative
+#       (.entries[]?) |= select(.duration != null) |
+
+## works great to convert yt-dlp to youtube-dl format
+cat ~/tmp/mpv-ytdlp/outs.yt-dlp.json | jq '
+  if (._type == "playlist") then
+       del(.requested_entries)|del(.thumbnails)|del(.epoch) |
+       del(.entries[] | select( .duration == null) ) |
+       (.entries[]?) |= . + { "url": .id }
+  else 
+    .
+  end
+'
+
+
+
+
+
+exit
+_D=$(date +%s%N)
+
+#cat <<EOF > /tmp/outs.${_D}.cmd.txt
+#yt-dlp "$@" | jq '. as \$raw |  try   (select(.entries[]|.duration != null)|del(.requested_entries))  catch \$raw'
+#EOF
+_ARGS=("$@")
+
+
+yt-dlp "$@"
+#yt-dlp "$@" | jq -Mc 'del(.requested_entries)'
+
+exit
+if [[ "$1" =~ ^--version$ ]]; then
+    yt-dlp "${_ARGS[@]}"
+else
+#    ( yt-dlp "$@" | jq '. as $raw |  try   (select(.entries[]|.duration != null)|del(.requested_entries))  catch $raw' 2>&1 > /tmp/outs.${_D}.txt ) & >/dev/null 2>/dev/null
+    yt-dlp "${_ARGS[@]}" | jq -Mc '. as $raw |  try   (select(.entries[]|.duration != null)|del(.requested_entries))  catch $raw'
+fi

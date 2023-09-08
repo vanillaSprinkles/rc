@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# screen -S x11vnc   x11vnc -display :0 -xkb -modtweak -passwd p@ssw0rd -auth guess    -q -wait 1  -nonc   -forever -loop  -skip_lockkeys    -skip_dups -no6 -noipv6 -nolookup  -speeds ,,1 -noshm  -snapfb  -extra_fbur 10   -xdamage -fs 0.65  -threads
+
+
+_KB=(
+    #"-nomodtweak"  ## '<' failed to send
+    "-modtweak"
+    #"-noxkb"  ## shift n failed to send
+    "-xkb"
+    "-skip_lockkeys"
+    "-scr_keyrepeat" "1-100"  ## default: 4-20
+    #"-v"
+
+
+)
+
+
+DRYRUN="${DRYRUN}"
+
+if [[ x"$DRYRUN" != "x" ]]; then DRYRUN='echo'; else DRYRUN=""; fi
+#unset DREXE
+
+#screen -S x11vnc  x11vnc -skip_dups -skip_lockkeys -xkb -modtweak -passwd p@ssw0rd -auth guess -forever -loop -repeat -wait 0 -defer 0 -setdefer -2 -nowait_bog -deferupdate 0 -nonap
+
+#  -modtweak -xkb -skip_lockkeys
+${DRYRUN} screen -S x11vnc  x11vnc -skip_dups  -passwd p@ssw0rd -auth guess -forever -loop -repeat -wait 0 -defer 0 -setdefer -2 -nowait_bog -deferupdate 0 -nonap -noxdamage  "${_KB[@]}"  "${@}"
+
+
+#screen -S x11vnc  x11vnc -grabptr -skip_dups -skip_lockkeys -xkb -modtweak -passwd p@ssw0rd -auth guess -forever -loop -repeat -wait 0 -defer 0 -setdefer -2 -nowait_bog -deferupdate 0 -nonap "${@}"
+

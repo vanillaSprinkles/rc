@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#### gets HDMI connected, exit if not
+hdmiConnected=($(xrandr -q | awk '$1 ~ /^HDMI/ && $2 ~ /^connected$/' ))
+[[ ${#hdmiConnected[@]} -le 0 ]] &&  exit
+
+
+
 role="r_main_back"
 name="termite_back"  # def $0
 trans="0.35"

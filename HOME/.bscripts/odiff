@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+
+_THIS_APP=$(basename $0)
+_exit_flag=0
+_DRYRUN1=0
+
+
+### TODO fixup arg parse
+if [[ "$@" =~ (^| )--help( |$) ]]; then
+    cat <<EOHELP
+${_THIS_APP}: Oh No Another Diff with Node's git-split-diffs
+
+Compare Left_File to Right_File using diff and git-split-diffs; useable with stdin redirects
+
+Usage:
+  - help (this)
+    ${_THIS_APP} --help
+
+  - standard-input as files
+    ${_THIS_APP}  <( printf 'a aa\nb bb\nc cc\nd dd\n' )  <( printf 'a aa\nb bHEY\nc cc\nd_dd\n' )
+
+  - with files
+    ${_THIS_APP} [--dryrun1] [-W##] Left_File  Right_File
+
+
+EOHELP
+  exit
+fi
+if [[ "$1" =~ ^(--dryrun1)$ ]]; then
+  shift
+  _DRYRUN1=1
+fi
+if [[ "$1" =~ ^(--dryrun2)$ ]]; then
+  shift
+  _DRYRUN1=2
+fi
+if [[ "$1" =~ ^(-W[0-9]+)$ ]]; then
+  _WIDTH=${1/-W/}
+  _WIDTH_NORMAL=$(stty -a | sed -n -r 's/^speed .* ([0-9]+) rows; ([0-9]+) columns.*|^speed .*rows ([0-9]+); columns ([0-9]+).*/\2\4/p')
+  #_GIT_MIN_LINE_GLOBAL=$(git config --global split-diffs.min-line-width)
+  _sdmlw_payload=($(git config  --show-scope --get-all split-diffs.min-line-width))
+  #_GIT_MIN_LINE_LOCAL=$( git config --local split-diffs.min-line-width)
+  shift
+fi
+
+
+
+if [[ -z $1 ]]; then
+ cat <<EO1 >&2
+${_THIS_APP}: missing operand after '${_THIS_APP}'
+${_THIS_APP}: Try '${_THIS_APP} --help' for more information.
+EO1
+  exit 2
+fi
+
+#if [[ -z $2 ]]; then
+# cat <<EO1 >&2
+#${_THIS_APP}: missing operand after '$1'
+#${_THIS_APP}: Try '${_THIS_APP} --help' for more information.
+#EO1
+# exit 2
+#fi
+
+
+
+
+#arg_exists() {
+# if [[ ! -e "$1" ]]; then
+#   cat <<EOnoexist >&2
+#${_THIS_APP}: $1: No such file
+#EOnoexist
+#   _exit_flag=1
+# fi
+#}
+#
+#arg_exists "$1"
+#arg_exists "$2"
+#
+#
+#[[ ${_exit_flag} -eq 0 ]] || exit 2
+
+
+
+
+
+
+#git diff --no-index --  $1   $2      | git-split-diffs --color | less -RXF
+
+if [ $_DRYRUN1 -eq 0 ]; then
+  trap "{
+    stty columns \${_WIDTH_NORMAL:-\$(tput cols)};
+    if [[ \${#_sdmlw_payload[@]} -gt 0 ]]; then
+      for ((i=0; i<\${#_sdmlw_payload[@]}; i++ )); do
+        git config --\${_sdmlw_payload[\$i]} split-diffs.min-line-width \${_sdmlw_payload[\$((++i))]} 
+      done
+    else
+      for ((i=0; i<\${#_sdmlw_payload[@]}; i++ )); do
+        git config --\${_sdmlw_payload[\$((++i))]} --unset split-diffs.min-line-width
+      done
+    fi
+  }" EXIT
+  _WIDTH=${_WIDTH:-$(tput cols)}
+  for ((i=0; i<${#_sdmlw_payload[@]}; i=i+2 )); do
+    git config --${_sdmlw_payload[$i]} split-diffs.min-line-width $(( ${_WIDTH} /2 )) 
+  done
+  #git config --global split-diffs.min-line-width $(( ${_WIDTH} /2 ))
+  stty columns ${_WIDTH}
+
+  ## outer-diff header (useful when comparing many files, and files are 0-diff and no info displayed)
+  cat <<EOF
+# $1
+# $2
+EOF
+  
+  ## the diff:
+(
+  cat <<EOF
+diff --git a/$1 b/$2
+EOF
+
+  diff -N -u  --label a/$1 --label b/$2 --color  "$1"  "$2"
+
+) | git-split-diffs --color git-split-diffs --stat=${_WIDTH},${_WIDTH},${_WIDTH}  --wrap-lines true
+
+
+
+
+
+elif [ $_DRYRUN1 -eq 2 ]; then
+cat <<EOF
+  diff -Nu   "$1"  "$2"    | git-split-diffs --color
+EOF
+
+
+
+
+### dryrun1 -ne 0
+else
+cat <<EOF
+(
+  diff --git a/$1 b/$2
+  diff -N -u  --label a/$1 --label b/$2 --color  "$1"  "$2"
+) | git-split-diffs --color
+EOF
+fi
