@@ -1,6 +1,49 @@
 #!/bin/sh
 #!/usr/bin/env bash
 
+THIS_APP='x-wms'
+
+
+help() {
+        cat <<EOF
+${THIS_APP}: convert Window Manager name to list consisting of binary + args
+
+examples:
+  ${THIS_APP}  xfwm
+
+  xfwm4-session
+  args
+  foo
+  bar
+
+EOF
+
+}
+
+
+if [[ "${@,,}" =~ (^| )-+h(elp)?( |$) ]]; then
+    help
+    exit
+fi
+
+
+
+
+invalid_wm() {
+    echo -e "${ReD}${THIS_APP}: invalid operand\n${DeF}Useage:  ${THIS_APP}  [window manger]"
+
+    IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+    printf '%s\n  '  "Window Managers:";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
+
+    exit 1
+}
+
+
+
+
+
+
+
 dquote_escape(){
     for x in "${@}"; do
         printf '%s '  "${x//\"/\\\"}"
@@ -218,11 +261,14 @@ wms=(
 declare -A wms_ass_alts
 declare -A wms_ass_args
 declare -A wms_ass_testing
+declare -A wms_ass_alts_to_bin
 
 declare -A wms_ass ##  wms_ass[wm-name]=wm-binary
+## processes pacman query results as 'wms' into arrays
 while IFS=$'\n' read -r awm; do
-    wms_ass["${awm}"]="${awm}"
-    wms_ass_alts["${awm}"]="${awm}"
+    wms_ass["${awm}"]="${awm}" ## sets 'wm' package name as binary to execute
+    wms_ass_alts["${awm}"]="${awm}" ## adds 'wm' package name as an alt, with value of itself
+    wms_ass_alts_to_bin["${awm}"]="${awm}"  ## adds 'wm' package name as an alt that points to key-name of wm
 done < <( for x in ${wms[@]}; do printf '%s\n' "$x"; done )
 #_OFF_use_array_#    pacman -Qs 'window manager|display manager' | \
 #_OFF_use_array_#        sed -r -n '/^ /d;   s@^local/([^ ]+)(-git)? +.*@\1@g;   s@^(.*)(-git)$@\1@g; p' | \
@@ -387,6 +433,12 @@ for (( m=0; m<${#wm_mangle_name_binary[@]}; m++ )); do
                 ## add alts_ar to wms_ass_alts
                 #_off_# wms_ass_alts["${wm_newname}"]=( "${alts_ar[@]}" )  ## cannot assign list to array member
                 wms_ass_alts["${wm_newname}"]="${alts}"
+
+                ## add alts to bin-list
+                for aalt in $(tr '|' '\n' <<<"${alts}"); do
+                    wms_ass_alts_to_bin["${aalt}"]="${wm_newname}"
+                done
+
                 unset alts wm_newname
             fi
         ;;
@@ -430,6 +482,7 @@ done
 ## ass method outputs
 
 if [[ -z "$1" ]]; then
+    invalid_wm
     echo -e "${ReD}pacquery-wm: invalid operand\n${DeF}Useage:  pacquery-wm  [window manger]"
 
     IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
@@ -441,15 +494,22 @@ elif [[ "$@" =~ (^|\s)-+(print|all|list)(\s|$) ]]; then
     exit 0
 fi
 
-arg_wm="${1,,}"
-bin="${wms_ass["${arg_wm}"]}"
-alts="${wms_ass_alts["${arg_wm}"]}"
+arg_wm="${1}"
+wm_key=${wms_ass_alts_to_bin["${arg_wm}"]:-8===D~~} ## should never get to default-case if input-check exists.........
 
-args="${wms_ass_args["${arg_wm}"]}"
+#bin="${wms_ass["${arg_wm}"]}"
+bin="${wms_ass["${wm_key}"]}"
+#alts="${wms_ass_alts["${arg_wm}"]}"
+alts="${wms_ass_alts["${wm_key}"]}"
+
+
+#args="${wms_ass_args["${arg_wm}"]}"
+args="${wms_ass_args["${wm_key}"]}"
 #IFS=$'\n' args=(  $(xargs -n1 <<<"${wms_ass_args["${arg_wm}"]}") )   ## makes an array (1 arg per element)
 
 #IFS=$'\n' args=( "$(xargs -n1 <<<"${wms_ass_args["${arg_wm}"]}")" )  ## makes a multi-line string
-testing="${wms_ass_testing["${arg_wm}"]}"
+#testing="${wms_ass_testing["${arg_wm}"]}"
+testing="${wms_ass_testing["${wm_key}"]}"
 
 
 #printf  '%s\n'  "${bin}"
@@ -457,12 +517,45 @@ testing="${wms_ass_testing["${arg_wm}"]}"
 #printf  '%s\n%s\n'  "${bin}"  "${testing}"  ## works for multi-line strings
 
 
+#echo "  ass-to-bin: ${wms_ass_alts_to_bin[$arg_wm]}"
+#echo "      newbin: ${wms_ass["${wms_ass_alts_to_bin["$arg_wm"]}"]}"
+
+
 printf  '%s\n'  "${bin}"
 if [ -n "${args}" ]; then
     printf  '%s\n'  "${args}"  ## works for multi-line strings
 fi
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exit
+
+
+
+
+
+
+
+
+
+
+
+
 
 #_OFF_no_clue_#if [[ -z "${wms_ass["${1,,}"]}" ]]; then
 #_OFF_no_clue_#    for wm_key in ${!wms_ass_alts[@]}; do
