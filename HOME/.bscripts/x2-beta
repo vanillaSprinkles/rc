@@ -1,0 +1,396 @@
+#!/usr/bin/env bash
+
+XWMS_BIN='x-wms-beta'
+
+
+DISPLAY="${DISPLAY:-:69}"
+XAUTHORITY="${XAUTHORITY:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2authority"}"
+SCREEN=0
+VRES='1890x950x24'
+WM_ARGS_OVERRIDE="false"  ## if true, WM_ARGS override x-wms-beta WM-arg; if false, these args get appended
+
+
+
+##   x     -d(isplay)? :69       -screen-num 0                    -v?res 1890x950x24       -auth file                          [ openbox    WM_ARGS_OVERRIDE      -c foo    ----         --x2-WM-exec  file
+#   x2   [ -d(isplay)? :69 ]   [ -s(creen-?(num(ber)?)?)? 0 ]   [ -v?res  WxHxR      ]   [ --x?auth(ority)?(file)? file ]      [ WM        [WM_ARGS_OVERRIDE]   [ WM-args ] ---- ]      [--x2-WM-exec? file/path-to-exec  ... ]
+
+
+
+arg_mode="wm-pre" # "wm-post" # each arg should be an exec-file or an exec-command
+arg_WM=''
+WM_ARGS=()
+X2_WM_EXEC=()
+
+
+#  HELP_MODE: '${_mode_help}'
+
+
+
+ARGS=( "${@}" )
+## more ideas: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+## regex parse cli (semi order dependant)
+for (( i=0; i<${#ARGS[@]}; i++ )); do
+    aarg="${ARGS[i]}"
+    ## -help  ## give help and break out
+    if [[ "${aarg}" =~ ^-+h(elp)?$ ]]; then
+        _mode_help=1
+        break
+
+
+    elif [[ "${arg_mode}" == "wm-pre" ]]; then
+        ## -display :#  ## display-number
+        if [[ "${aarg}" =~ ^-+d(isplay)?$ ]]; then
+            ((i++))
+            arg_DISPLAY=$( tr -d ' ' <<< ":${ARGS[i]}" | tr -s ':' )
+        elif [[ "${aarg}" =~ ^-+d(isplay)?=.+$ ]]; then
+            _chars_to_eq=${aarg%=*}
+            _length_to_eq="${#_chars_to_equal}"
+            arg_DISPLAY=$( tr -d ' ' <<< ":${aarg:$((_length_to_eq+1))}" | tr -s ':' )
+
+
+        ## -screen 0  ## screen number
+        elif [[ "${aarg}" =~ ^-+s(creen-?(num(ber)?)?)?$ ]]; then
+            ((i++))
+            arg_SCREEN=$( tr -d ' ' <<< "${ARGS[i]}" )
+        elif [[ "${aarg}" =~ ^-+s(creen-?(num(ber)?)?)?=.+$ ]]; then
+            _chars_to_eq=".${aarg%=*}"
+            _length_to_eq="${#_chars_to_eq}"
+            arg_SCREEN=$( tr -d ' ' <<< "${aarg:$((_length_to_eq+1))}" )
+
+
+        ## -vres -res WxHxD  ## virtual fb resolution
+        elif [[ "${aarg}" =~ ^-+v?res$ ]]; then
+            ((i++))
+            arg_VRES=$( tr -d ' ' <<< "${ARGS[i]}" )
+        elif [[ "${aarg}" =~ ^-+v?res=.+$ ]]; then
+            _chars_to_eq=".${aarg%=*}"
+            _length_to_eq="${#_chars_to_eq}"
+            arg_VRES=$( tr -d ' ' <<< "${aarg:$((_length_to_eq+1))}" )
+
+
+        ## -auth file  ## xauth file
+        elif [[ "${aarg}" =~ ^-+x?auth(ority)?(file)?$ ]]; then
+            ((i++))
+            arg_XAUTHORITY=$( tr -d ' ' <<< "${ARGS[i]}" )
+        elif [[ "${aarg}" =~ ^-+x?auth(ority?)(file)?=.+$ ]]; then
+            _chars_to_eq=".${aarg%=*}"
+            _length_to_eq="${#_chars_to_eq}"
+            arg_XAUTHORITY=$( tr -d ' ' <<< "${aarg:$((_length-to_eq+1))}" )
+        
+        
+        elif [[ "x${arg_WM}" == "x"  &&  "${aarg}" =~ ^[^-]+ ]]; then
+            arg_WM="${aarg}"
+            if [[ "${ARGS[$((i+1))]^^}" =~ ^-*WM_ARGS_OVERRIDE$ ]]; then
+                WM_ARGS_OVERRIDE="true"
+                ((i++))
+            fi
+            ## args directly after WM should be treated as args for the WM; break out with:  ---- or --x2-WM-exec
+            for (( j=$((++i)) ; j<${#ARGS[@]}; j++ )); do
+                aarg_wm="${ARGS[j]}"
+                if [[ "${aarg_wm}" =~ ^-+h(elp)?$ ]]; then
+                    _mode_help=1
+                    i=$j  ## break out of j-loop, continue in i-loop where j left off
+                    break
+
+
+                ## break out of wm-pre, wm args; change mode to wm-exec where every arg after is a command to exec/eval
+                elif [[ "${aarg_wm,,}" =~ ^----+$|^-+x2-wm-exec$ ]]; then
+                    arg_mode="wm-post"
+                    i=$j  ## break out of j-loop, continue in i-loop where j left off
+                    j=${#ARGS[@]}
+                    break
+                else
+                    WM_ARGS+=( "${aarg_wm}" )
+                fi
+            done
+        fi ## end arg_mode 'wm-pre' sub-conditions
+
+
+    #elif [[ "${arg_mode}" == "wm-post" ]]; then
+    else ## only 2 modes; no need to call extra if
+        if [[ "${aarg,,}" =~ ^-+x2-wm-exec$ ]]; then
+            continue
+        fi
+        X2_WM_EXEC+=( "${aarg}" )        
+    
+    fi  ## end arg_mode 'wm-post'
+
+
+done
+
+
+
+
+
+if [[ -n "${arg_XAUTHORITY}" ]]; then ## TODO improve check
+    XAUTHORITY="${arg_XAUTHORITY}"
+fi
+
+
+if [[ "${arg_DISPLAY}" =~ :[0-9]+ ]]; then
+    DISPLAY="${arg_DISPLAY}"
+fi
+server_num="${DISPLAY##*:}"
+
+
+if [[ "${arg_SCREEN}" =~ ^[0-9]+$ ]]; then
+    SCREEN="${arg_SCREEN}"
+fi
+
+
+if [[ "${arg_VRES}" =~ ^[0-9]+x[0-9]+x[0-9]+$ ]]; then
+    VRES="${arg_VRES}"
+fi
+
+
+WM="${arg_WM}"
+if [[ -z "${arg_WM}" ]]; then
+    WM='openbox'  ## TODO dont set a default WM (DEBUG ONLY)
+fi
+
+
+export DISPLAY XAUTHORITY
+
+
+
+
+
+if [[ -n "$DEBUG" && "$DEBUG" > 0 ]]; then
+    cat <<EOF
+  DISPLAY: '${DISPLAY}'   '${arg_DISPLAY}'
+  XAUTHORITY: '${XAUTHORITY}'  '${arg_XAUTHORITY}'
+  SCREEN: '${SCREEN}'   '${arg_SCREEN}'
+  VRES: '${VRES}'  '${arg_VRES}'
+  WM:  '${WM}'
+    WM_ARGS_OVERRIDE: '${WM_ARGS_OVERRIDE}'
+EOF
+
+    printf '  WM ARGS (1 per line):\n'
+    for (( i=0; i<${#WM_ARGS[@]}; i++ )); do
+        printf '    %s\n'  "${WM_ARGS[i]}"
+    done
+
+    printf '  WM Post Exec CMD + Args (command, followed by 1x arg per line):\n'
+    for (( i=0; i<${#X2_WM_EXEC[@]}; i++ )); do
+        printf '    %s\n'  "${X2_WM_EXEC[i]}"
+    done
+
+    exit
+fi
+
+
+
+unset  ARGS arg_mode  arg_XAUTHORITY  arg_DISPLAY  arg_VRES  arg_WM  arg_DISPLAY  i
+
+
+
+
+
+IFS=$'\n' XWMS_ARGS=($( "${XWMS_BIN}"  "${WM}"))  ## [0] is CMD;  [1+] are 'default' args
+unset  XWMS_BIN  WM
+
+
+
+
+trap 'for x in ${pids[@]}; do sleep 1s; \kill -9 $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT TERM INT QUIT KILL HUP ABRT TSTP
+
+
+
+## print the goodies
+cat <<HEREDOC
+Xvfb starting:
+  XAUTHORITY: ${XAUTHORITY}
+  DISPLAY: ${DISPLAY}
+  
+  screen number: ${SCREEN}
+  resolution: ${VRES}
+
+  window manager cmd: ${XWMS_ARGS[0]}
+HEREDOC
+
+if [[ "${WM_ARGS_OVERRIDE}" == "false" ]]; then
+    printf '  window manager args (1 per line):\n' 
+    for (( i=1; i<${#XWMS_ARGS[@]}; i++ )); do
+        printf '    %s\n'  "${XWMS_ARGS[i]}"
+    done
+fi
+printf '  window manager args (overrides) (1 per line):\n' 
+for (( i=0; i<${#WM_ARGS[@]}; i++ )); do
+    printf '    %s\n'  "${WM_ARGS[i]}"
+done
+    
+
+
+printf '  WM Post Exec command(s) (1 command per line):\n'
+for (( i=0; i<${#X2_WM_EXEC[@]}; i++ )); do
+    printf '    %s\n'  "${X2_WM_EXEC[i]}"
+done
+
+printf '\n\n'
+
+
+## xvfb-run wrap
+if [[ "${WM_ARGS_OVERRIDE}" == "true" ]]; then
+    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"                       "${WM_ARGS[@]}" &
+    xvfbrunpid=$!
+else
+    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"  "${XWMS_ARGS[@]:1}"  "${WM_ARGS[@]}" &
+    xvfbrunpid=$!
+fi
+
+unset  WM_ARGS_OVERRIDE  VRES  XWMS_ARGS  WM_ARGS
+
+
+
+
+
+
+## eh, wait for PID file; 3s, 5 attempts (dont fall asleep!)
+for (( i=0; i<5; i++ )); do
+  if [ ! -e /proc/${xvfbrunpid} ]; then
+      echo "xvfb-run died; pid dne ${xvfbrunpid}"
+      exit
+  fi
+  sleep 3
+  if [ -f "/tmp/.X${server_num}-lock" ]; then
+      wmpid=$(tr -d ' ' < "/tmp/.X${server_num}-lock")  ## Xvfb pid
+      break
+  fi
+done
+unset  server_num
+pids=( "${xvfbrunpid}"  "${wmpid}" )
+#pids=( "${wmpid}" )
+
+#echo "wmpid $wmpid" #(xvfb-run is  SH)
+
+#if [[ -z "${X2_WM_EXEC[@]}" ]]; then
+(trap '' INT QUIT TERM HUP EXIT &&  "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"; printf '\n' ) & execpid=$!
+wait $execpid  ## this immediatly closes shell after contents detach
+unset  X2_WM_EXEC
+
+#echo "pids: ${pids[@]}"
+wait "${pids[@]}" 2>/dev/null
+
+
+
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export XAUTHORITY="${XAUTHORITY:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2authority"}"
+printf  "XAUTHORITY: %s\n"  "${XAUTHORITY}"
+export DISPLAY="${DISPLAY:-:69}"
+
+
+IFS=$'\n' xvfb_args=($( "${XWMS}"   "${1:-"openbox"}"))
+cmd="${xvfb_args[0]}"
+cmd_args=(  "${xvfb_args[@]:1}" )
+
+#IFS=$'\n' cmd_args=(  $( for ((i=1; i<${#xvfb_args[@]}; i++)); do if [[ "${xvfb_args[i]}" =~  ( |\'|\") ]]; then printf '%q\n' "${xvfb_args[i]}"; else printf '%s\n' "${xvfb_args[i]}";  fi;  done ) )
+
+printf "cmd: %s\n\n"  "${cmd}"
+printf "args:\n"
+for (( i=1; i<${#cmd_args[@]}; i++ )); do
+    printf '%s\n'  "${cmd_args[i]}"
+done
+printf '\n'
+
+## otherwise run Xvfb and manually handle xauth and cleanup
+
+## manual openbox
+#  XAUTHORITY=~/.Xauthority  DISPLAY=:2  openbox --config-file  ~/.config/openbox/lxde-rc.xml --startup "/bin/bash -c '_A=(\"a a\" \"b b\"); echo \"\${_A[1]}  \$(date)\" >> /tmp/wtf'"
+## converts to
+#  xvfb-run --server-num ........   --   openbox --config-file  ~/.config/openbox/lxde-rc.xml --startup "/bin/bash -c '_A=(\"a a\" \"b b\"); echo \"\${_A[1]}  \$(date)\" >> /tmp/wtf'"
+
+
+#echo xvfb-run --server-num 69 --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"  "${xvfb_args[@]}"  # "${cmd}"   "${cmd_args[@]}"
+IFS=$'\n'  _ARGS=($(cat <<EOF
+--config-file
+~/.config/openbox/lxde-rc.xml
+--startup
+/bin/sh -c "date >> /tmp/wtf"
+EOF
+))
+
+
+# "/bin/bash -c '_A=(\"a a\" \"b b\"); echo \"\${_A[1]}  \$(date)\" >> /tmp/wtf'"
+#'/bin/bash -c "_A=(\"a a\"  \"b b\" \"c cc\"); echo \"\${_A[1]}\" >> /tmp/wtf'
+
+_HMM=( "${_ARGS[@]}" )
+_HMM=( "${cmd_args[@]}" )
+for (( i=1; i<${#_HMM[@]}; i++ )); do
+    printf '%s\n'  "${_HMM[i]}"
+done
+printf '\n\n'
+shift
+
+#echo "${_ARGS[@]}"
+
+echo " ::: ${@:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
+
+killwmpid(){
+    echo "IN KILLWMPID TRAP $wmpid"
+    ps aux | grep $wmpid
+    if [ "${wmpid}" ] && kill -0 "${wmpid}" 2>/dev/null; then
+        kill "${wmpid}"
+        wait "${wmpid}"
+        ret=$?
+    fi
+    if [ "$1" = exit ]; then
+        exit "${ret:-0}" 
+    fi
+}
+trap 'killwmpid; trap - INT; kill -INT "$$"' INT
+trap 'killwmpid exit' EXIT HUP TERM QUIT
+
+#xvfb-run --server-num 69 --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"  --  "${cmd}"  "${_ARGS[@]}"   # "${cmd_args[@]}"
+server_num="${DISPLAY##*:}"
+
+trap 'wmpid=$( cat /tmp/X${server_num}-lock ); wait "${wmpid}"' USR1
+
+trap 'echo "INT pid $$  $0"' INT
+trap 'echo "QUIT pid $$  $0"' QUIT
+trap 'echo "TERM pid $$  $0"' TERM
+trap 'echo "HUP pid $$  $0"' HUP
+trap 'echo "EXIT pid $$  $0"; for x in ${pids[@]}; do \kill -9 $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT
+
+( trap 'echo HUP wtf pid $$' HUP && xvfb-run --server-num "${server_num:-69}" --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"  --  "${cmd}"  "${_HMM[@]}"   ) &  # "${cmd_args[@]}"
+xvfbrunpid=$!
+for (( i=0; i<5; i++ )); do
+  if [ ! -e /proc/${xvfbrunpid} ]; then
+      echo "xvfb-run died; pid dne ${xvfbrunpid}"
+      exit
+  fi
+  sleep 3
+  if [ -f "/tmp/.X${server_num}-lock" ]; then
+      wmpid=$(tr -d ' ' < "/tmp/.X${server_num}-lock")  ## Xvfb pid
+      break
+  fi
+done
+pids=( "${xvfbrunpid}"  "${wmpid}" )
+#pids=( "${wmpid}" )
+
+#wmpid=$1
+echo "wmpid $wmpid" #(xvfb-run is  SH)
+
+
+(trap '' INT QUIT TERM HUP EXIT &&  "${@:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" ) & execpid=$!
+wait $execpid  ## this immediatly closes shell after contents detach
+
+
+echo "pids: ${pids[@]}"
+wait "${pids[@]}" 2>/dev/null
+
+#xvfb-run --server-num 69 --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"  --  "${cmd}"  --startup '/bin/bash -c "date >> /tmp/wtf"'   # "${cmd_args[@]}"
+#xvfb-run --server-num 69 --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"   --   openbox --config-file  ~/.config/openbox/lxde-rc.xml --startup "/bin/bash -c '_A=(\"a a\" \"b b\"); echo \"\${_A[1]}  \$(date)\" >> /tmp/wtf'"
