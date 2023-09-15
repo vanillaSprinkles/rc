@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-_DEF_ARGS=(-q -speeds 10,5000,1  -nonc -snapfb  -forever -loop  -skip_lockkeys  )
-## x11vnc_simple -d :1 -xkb -modtweak -passwd p@ssw0rd -auth guess -forever -loop -repeat -wait 0 -defer 0 -setdefer -2 -nowait_bog -deferupdate 0 -nonap
+
+UNSET_PASSWORD=p@ssw0rd
+
+
 
 _help() {
     cat <<EOF
@@ -12,17 +14,62 @@ _help() {
     -d(isplay)?  :#
     -pw?|passwd|password  <string>
 
-  ## default arguments:
-    ${_DEF_ARGS[@]}
+  ## default embedded arguments:
+    -passwd "${_args_mod[0]:-${UNSET_PASSWORD}}"
+    ${_DEF_ARGS[@]} -auth \${XAUTHORITY}
 
   examples:
-    ${0} p@ssw0rd  ## x11vnc with password p
-    ${0} p@ssw0rd  -d :1
-    ${0} -d :1 p@ssw0rd
-    ${0} -pw p@ssw0rd  -d :1
+    ${0##*/} ${UNSET_PASSWORD}  ## x11vnc with password ${UNSET_PASSWORD}
+    ${0##*/} ${UNSET_PASSWORD}  -d :1
+    ${0##*/} -d :1 ${UNSET_PASSWORD}
+    ${0##*/} -pw ${UNSET_PASSWORD}  -d :1
 EOF
     exit
 }
+
+
+
+
+
+_DEF_ARGS=(
+    -q  ## quiet
+
+    -forever
+    -loop
+
+    -nonc  ## Client-side  caching  scheme (disabled with nonc)
+
+    -speeds ,,1  
+
+    -snapfb  ## could cause issues (most times makes response times worse)
+    -wait 5  ## default: 20  ## time in ms to pause between screen polls
+    -nowait_bog  ## do ot detect if screen-polling is "bogged down" and sleep more
+    
+    -defer 0  ## time in ms to delay sending updates to connected clients (default: 20)
+    -deferupdate 0  ## time in ms to defer updates (default: 40)
+
+    -wait_ui 5   ## maybe disable
+    -setdefer -2
+
+    -noxdamage  ## pulling smaller areas ("use -xdamage if your default is to have it off" ?? wtf)
+
+    -skip_dups  ## key repeats
+    # -nomodtweak  ## '<' failed to send?
+    -modtweak
+    # -noxkb  ## shift n failed to send
+    -xkb
+    -skip_lockkeys  ## also use nomodtweak for workarounds
+    #-scr_keyrepeate  1-100  ## default: 4-20
+
+    -auth guess
+)
+
+
+if [[ "x${XAUTHORITY}" != "x" ]]; then
+    _DEF_ARGS+=( -auth "${XAUTHORITY}" )
+fi
+
+
 
 
 
@@ -53,7 +100,7 @@ for (( i=0; i<${#_args_orig[@]}; i++ )); do
         _arg_display="${_aarg:${_substring_length}}"
 
 
-    ## -pw? p  ## password
+    ## -pw  ## passwd  ## password
     elif [[ "${_aarg}" =~ ^-+(pw?|passwd|password)$ ]]; then
         ((i++))
         _arg_pass="${_args_orig[$i]}"
@@ -70,6 +117,8 @@ done
 
 
 
+
+
 if [[ -n "${_arg_display}" ]]; then
     _args_mod+=( '-display' "${_arg_display}" )
 fi
@@ -77,11 +126,25 @@ fi
 if [[ -n "${_arg_pass}" ]]; then
     _args_mod=( "${_arg_pass}"  "${_args_mod[@]}" )
 elif [[ "${_args_mod[0]:0:1}" == '-' ]]; then
-    ## set default pass to p when no password is set, and flag/arguments exist
-    _args_mod=( "p"  "${_args_mod[@]}" )
+    ## set default pass to $UNSET_PASSWORD when no password is set, and flag/arguments exist
+    _args_mod=( "${UNSET_PASSWORD}"  "${_args_mod[@]}" )
 fi
 
 
-x11vnc -passwd "${_args_mod[0]:-p@ssw0rd}"  ${_DEF_ARGS[@]}   "${_args_mod[@]:1}"
-#x11vnc -passwd ${1:-drp}  -vencrypt only -ssl
 
+
+
+killer() {
+    kill -${1:-TERM} -- 0
+}
+
+
+
+
+
+trap 'trap - HUP INT QUIT ABRT TERM; killer; kill -TERM -- 0 ' HUP INT QUIT ABRT TERM #EXIT ERR
+x11vnc -passwd "${_args_mod[0]:-${UNSET_PASSWORD}}"  "${_DEF_ARGS[@]}"   "${_args_mod[@]:1}" & x11vnc_pid=$!
+
+
+echo "x11vnc pid: ${x11vnc_pid}"
+wait $x11vnc_pid

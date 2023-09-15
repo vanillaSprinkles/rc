@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+THIS_BIN="${0##*/}"
 XWMS_BIN='x-wms-beta'
 
 
@@ -9,10 +10,122 @@ SCREEN=0
 VRES='1890x950x24'
 WM_ARGS_OVERRIDE="false"  ## if true, WM_ARGS override x-wms-beta WM-arg; if false, these args get appended
 
+#_DEBUG_WM='openbox' ## comment out to disable
 
 
 ##   x     -d(isplay)? :69       -screen-num 0                    -v?res 1890x950x24       -auth file                          [ openbox    WM_ARGS_OVERRIDE      -c foo    ----         --x2-WM-exec  file
 #   x2   [ -d(isplay)? :69 ]   [ -s(creen-?(num(ber)?)?)? 0 ]   [ -v?res  WxHxR      ]   [ --x?auth(ority)?(file)? file ]      [ WM        [WM_ARGS_OVERRIDE]   [ WM-args ] ---- ]      [--x2-WM-exec? file/path-to-exec  ... ]
+
+
+
+
+
+help() {
+    cat <<EOT
+${THIS_BIN} :: launch a virtual desktop env with an installed WM.
+   Utilizes ${XWMS_BIN} for pre-defined WM alias' and configs; also spawn an additional command or script
+     Processed args will be output to screen before exec Xvfb + extra-cmd
+
+   ENV:
+     DISPLAY
+     XAUTHORITY
+     DEBUG       ## exits after dumping arg/env info
+
+   args ordering (first-args support regex!):
+     the first arg not starting with a '-' will be considered the WM
+     args with dashes before the WM will be treated for display, vres, authfile; and error otherwise (supports regex!)
+     args after the WM will be sent to the WM with the following exceptions:
+        if the arg after WM is 'WM_ARGS_OVERRIDE', the args fed from ${XWMS_BIN} are ignored
+        if 'WM_ARGS_OVERRIDE' is unset, the args after the WM are appended to those fed from ${XWMS_BIN}
+     args for the WM are stopped with  '----' and/or followed by '--x2-WM-exec'
+     
+
+
+${THIS_BIN}
+  [
+    [ -d(isplay-?(num(ber)?)?)?  :69 ]   ## display  (defaults to ':69')
+    [ -s(screen-?(num(ber)?)?)?          ## screen number (defaults 0)
+    [ -v?res  WxHxR ]                    ## virtual res  (defaults to '${VRES}')
+    [ -x?auth(ority)?(file)?  file ]     ## xauth-file  (defaults to '\${XDG_DATA_HOME:-"\${HOME}/.local/share"}/bscripts/x2authority')
+                                           ## dont use ~/.Xauthority as some apps do not play nice and clobber contents!
+
+    [ WM                                 ## the Window Manager (defaults to openbox?)
+        [ WM_ARGS_OVERRIDE ]
+        [ WM-args ... ]
+        [ ---- ]
+    ]
+  ]
+
+  [
+    [ --x2-WM-exec? ]
+    [ extra-cmd/path-to-exec             ## if unset, launches '\${XDG_DATA_HOME:-"\${HOME}/.local/share"}/bscripts/x2initrc'
+        [ args-for-extra-cmd ... ]
+    ]
+  ]
+
+
+Examples:
+  - ${THIS_BIN}  [ ... ]  -+h(elp)?  [ ... ]
+
+  - ${THIS_BIN}  openbox
+
+  - ${THIS_BIN}  openbox  ----  x11vnc_simple
+
+  - ${THIS_BIN}  openbox  --x2-WM-exec  x11vnc_simple  -p 1243
+
+  - ${THIS_BIN}  ----display :69  -screen-number=0  --xauthfile=FILE  openbox
+
+  - ${THIS_BIN}  -d :69  -s 1  -vres ${VRES}  -auth ~/.local/share/bscripts/x2authority  openbox  --config-file FILE  ----  --x2-WM-exec  x11vnc_simple  -p 1243
+
+  - ${THIS_BIN}  -d :69  -s 4  -vres ${VRES}  -auth ~/.local/share/bscripts/x2authority  openbox  WM_ARGS_OVERRIDE  --startup  lxsession  ----  --x2-WM-exec  x11vnc_simple  -p 1243
+
+  - ${THIS_BIN}  -d :69  -s 6  -vres ${VRES}  -auth ~/.local/share/bscripts/x2authority  openbox  WM_ARGS_OVERRIDE  --startup  x11vnc_simple  -p 1243
+
+  - ${THIS_BIN}  -d :69  -s 9  -vres ${VRES}  -auth ~/.local/share/bscripts/x2authority  openbox  ----  ~/.local/share/bscripts/x2initrc
+
+EOT
+}
+
+
+
+
+killer() {
+    SIG=${1:-TERM}
+    echo "######### killer time"
+    kill -${SIG} -- 0 #-${pids[@]}
+    #for x in ${pids[@]}; do
+    #    echo "killing -${SIG}  $x   ( $(ps aux | grep $x | grep -v grep) )"
+    #    kill -${SIG} -$x
+    #done
+}
+
+
+
+
+
+if [[ ! -e "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc" ]]; then
+    mkdir -p "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/"
+    cat <<'EOF' > "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"
+#!/usr/bin/bash
+
+#### example bscripts x2initrc
+#### DISPLAY and XAUTHORITY will be exposed from x2
+
+# eval "$(cat ~/.fehbg)" &
+
+# alacritty -e /bin/tmux news >/dev/null 2>&1 &
+
+# x11vnc_simple -passwd '1234' &
+
+# x11vnc -passwd '1234' -q -forever -loop -nonc -speeds ,,1 -snapfb -wait 5 -nowait_bog -defer 0 -deferupdate 0 -wait_ui 5 -setdefer -2 -noxdamage -skip_dups -modtweak -xkb -skip_lockkeys -loop5000,5 -auth "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2authority" -display :3
+
+EOF
+    chmod +x "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"
+fi
+
+
+
+
 
 
 
@@ -22,8 +135,6 @@ WM_ARGS=()
 X2_WM_EXEC=()
 
 
-#  HELP_MODE: '${_mode_help}'
-
 
 
 ARGS=( "${@}" )
@@ -31,6 +142,7 @@ ARGS=( "${@}" )
 ## regex parse cli (semi order dependant)
 for (( i=0; i<${#ARGS[@]}; i++ )); do
     aarg="${ARGS[i]}"
+    aargL="${aarg,,}"
     ## -help  ## give help and break out
     if [[ "${aarg}" =~ ^-+h(elp)?$ ]]; then
         _mode_help=1
@@ -39,46 +151,47 @@ for (( i=0; i<${#ARGS[@]}; i++ )); do
 
     elif [[ "${arg_mode}" == "wm-pre" ]]; then
         ## -display :#  ## display-number
-        if [[ "${aarg}" =~ ^-+d(isplay)?$ ]]; then
+        if [[ "${aargL}" =~ ^-+d(isplay-?(num(ber)?)?)?$ ]]; then
             ((i++))
             arg_DISPLAY=$( tr -d ' ' <<< ":${ARGS[i]}" | tr -s ':' )
-        elif [[ "${aarg}" =~ ^-+d(isplay)?=.+$ ]]; then
+        elif [[ "${aargL}" =~ ^-+d(isplay)?=.+$ ]]; then
             _chars_to_eq=${aarg%=*}
-            _length_to_eq="${#_chars_to_equal}"
+            _length_to_eq="${#_chars_to_eq}"
+            echo "::: $_length_to_eq"
             arg_DISPLAY=$( tr -d ' ' <<< ":${aarg:$((_length_to_eq+1))}" | tr -s ':' )
 
 
         ## -screen 0  ## screen number
-        elif [[ "${aarg}" =~ ^-+s(creen-?(num(ber)?)?)?$ ]]; then
+        elif [[ "${aargL}" =~ ^-+s(creen-?(num(ber)?)?)?$ ]]; then
             ((i++))
             arg_SCREEN=$( tr -d ' ' <<< "${ARGS[i]}" )
-        elif [[ "${aarg}" =~ ^-+s(creen-?(num(ber)?)?)?=.+$ ]]; then
+        elif [[ "${aargL}" =~ ^-+s(creen-?(num(ber)?)?)?=.+$ ]]; then
             _chars_to_eq=".${aarg%=*}"
             _length_to_eq="${#_chars_to_eq}"
-            arg_SCREEN=$( tr -d ' ' <<< "${aarg:$((_length_to_eq+1))}" )
+            arg_SCREEN=$( tr -d ' ' <<< "${aarg:$_length_to_eq}" )
 
 
         ## -vres -res WxHxD  ## virtual fb resolution
-        elif [[ "${aarg}" =~ ^-+v?res$ ]]; then
+        elif [[ "${aargL}" =~ ^-+v?res$ ]]; then
             ((i++))
             arg_VRES=$( tr -d ' ' <<< "${ARGS[i]}" )
-        elif [[ "${aarg}" =~ ^-+v?res=.+$ ]]; then
+        elif [[ "${aargL}" =~ ^-+v?res=.+$ ]]; then
             _chars_to_eq=".${aarg%=*}"
             _length_to_eq="${#_chars_to_eq}"
-            arg_VRES=$( tr -d ' ' <<< "${aarg:$((_length_to_eq+1))}" )
+            arg_VRES=$( tr -d ' ' <<< "${aarg:$_length_to_eq}" )
 
 
         ## -auth file  ## xauth file
-        elif [[ "${aarg}" =~ ^-+x?auth(ority)?(file)?$ ]]; then
+        elif [[ "${aargL}" =~ ^-+x?auth(ority)?(file)?$ ]]; then
             ((i++))
             arg_XAUTHORITY=$( tr -d ' ' <<< "${ARGS[i]}" )
-        elif [[ "${aarg}" =~ ^-+x?auth(ority?)(file)?=.+$ ]]; then
+        elif [[ "${aargL}" =~ ^-+x?auth(ority)?(file)?=.+$ ]]; then
             _chars_to_eq=".${aarg%=*}"
             _length_to_eq="${#_chars_to_eq}"
-            arg_XAUTHORITY=$( tr -d ' ' <<< "${aarg:$((_length-to_eq+1))}" )
-        
-        
-        elif [[ "x${arg_WM}" == "x"  &&  "${aarg}" =~ ^[^-]+ ]]; then
+            arg_XAUTHORITY="${aarg:$_length_to_eq}"  ## files can have spaces; trust user input
+
+
+        elif [[ "x${arg_WM}" == "x"  &&  "${aargL}" =~ ^[^-]+ ]]; then
             arg_WM="${aarg}"
             if [[ "${ARGS[$((i+1))]^^}" =~ ^-*WM_ARGS_OVERRIDE$ ]]; then
                 WM_ARGS_OVERRIDE="true"
@@ -87,14 +200,15 @@ for (( i=0; i<${#ARGS[@]}; i++ )); do
             ## args directly after WM should be treated as args for the WM; break out with:  ---- or --x2-WM-exec
             for (( j=$((++i)) ; j<${#ARGS[@]}; j++ )); do
                 aarg_wm="${ARGS[j]}"
-                if [[ "${aarg_wm}" =~ ^-+h(elp)?$ ]]; then
+                aarg_wmL="${aarg_wm,,}"
+                if [[ "${aarg_wmL}" =~ ^-+h(elp)?$ ]]; then
                     _mode_help=1
                     i=$j  ## break out of j-loop, continue in i-loop where j left off
                     break
 
 
                 ## break out of wm-pre, wm args; change mode to wm-exec where every arg after is a command to exec/eval
-                elif [[ "${aarg_wm,,}" =~ ^----+$|^-+x2-wm-exec$ ]]; then
+                elif [[ "${aarg_wmL}" =~ ^----+$|^-+x2-wm-exec$ ]]; then
                     arg_mode="wm-post"
                     i=$j  ## break out of j-loop, continue in i-loop where j left off
                     j=${#ARGS[@]}
@@ -145,11 +259,16 @@ fi
 
 WM="${arg_WM}"
 if [[ -z "${arg_WM}" ]]; then
-    WM='openbox'  ## TODO dont set a default WM (DEBUG ONLY)
+    WM=${_DEBUG_WM}
+    #WM='openbox'  ## TODO dont set a default WM (DEBUG ONLY)
 fi
 
+if [[ "$_mode_help" -eq 1 ]]; then
+    help
+    exit 0
+fi
 
-export DISPLAY XAUTHORITY
+export  DISPLAY  XAUTHORITY
 
 
 
@@ -185,14 +304,55 @@ unset  ARGS arg_mode  arg_XAUTHORITY  arg_DISPLAY  arg_VRES  arg_WM  arg_DISPLAY
 
 
 
-
 IFS=$'\n' XWMS_ARGS=($( "${XWMS_BIN}"  "${WM}"))  ## [0] is CMD;  [1+] are 'default' args
-unset  XWMS_BIN  WM
+RET=$?
+if [[ "${RET}" -gt 0 ]]; then
+    if [[ -z "${WM}" ]]; then
+        cat <<EOT
+${THIS_BIN} ERROR: no window manager specified; use --help for more info
+  openbox example:   ${THIS_BIN} -d 69 -vres ${VRES} openbox ---- x11vnc_simple -passwd 1243
+EOT
+        unset  XWMS_ARGS[1]  XWMS_ARGS[0]
+    fi
+
+    for x in ${XWMS_ARGS[@]}; do
+        printf  '%s\n'  "$x"
+    done
+    exit ${RET:-1}
+fi
+unset  XWMS_BIN  WM  RET
 
 
 
 
-trap 'for x in ${pids[@]}; do sleep 1s; \kill -9 $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT TERM INT QUIT KILL HUP ABRT TSTP
+#trap 'for x in ${pids[@]}; do sleep 1s; \kill -9 $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT TERM INT QUIT KILL HUP ABRT TSTP
+#trap 'for x in ${pids[@]}; do sleep 1s; \kill    $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT TERM INT QUIT KILL HUP ABRT TSTP
+
+#_MOVEME_#killer() {
+#_MOVEME_#    SIG=${1:-TERM}
+#_MOVEME_#    echo "######### killer time"
+#_MOVEME_#    kill -${SIG} -- 0 #-${pids[@]}
+#_MOVEME_#    #for x in ${pids[@]}; do
+#_MOVEME_#    #    echo "killing -${SIG}  $x   ( $(ps aux | grep $x | grep -v grep) )"
+#_MOVEME_#    #    kill -${SIG} -$x
+#_MOVEME_#    #done
+#_MOVEME_#}
+
+#trap 'trap - EXIT; echo "EXIT dd $$"; killer 9; kill -9 $$' EXIT  ## openbox close gives this
+#trap 'trap - TERM; echo "TERM dd $$";                kill -TERM $$' TERM
+#trap 'trap - INT; echo "INT dd $$"; killer INT; kill -INT $$' INT  # -2 
+#trap 'echo "QUIT dd $$"; kill -QUIT $$' QUIT
+#trap 'echo "KILL dd $$"; kill -KILL $$' KILL
+#trap 'echo "HUP dd $$"; kill -HUP $$' HUP
+#trap 'echo "ABRT dd $$"; kill -ABRT $$' ABRT
+#trap 'echo "TSTP dd $$"; kill -TSTP $$' TSTP
+
+
+#trap 'for (( i=$(( ${#pids[@]} -i)); i>=0; i-- )); do x=${pids[i]}; sleep 1s; \kill  $x 2>/dev/null; done; unset pids; \rm -f /tmp/.X${server_num}-lock; trap "" EXIT QUIT' EXIT TERM INT QUIT KILL HUP ABRT TSTP
+
+
+
+
 
 
 
@@ -229,11 +389,19 @@ done
 printf '\n\n'
 
 
+unset -v  TMUX  TMUX_PANE  TERM_PROGRAM_VERSION  BASH_STUFF_FIRST_SHELL_LOGIN
+#trap 'trap - HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR; killer INT; kill -9 $$ ' HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR
+
+#trap 'trap - HUP INT QUIT ABRT TERM ; killer; echo trap-kill; kill -TERM -- 0' HUP INT QUIT ABRT TERM #EXIT ERR
+trap 'trap - HUP INT QUIT ABRT TERM ; killer; kill -TERM -- 0' HUP INT QUIT ABRT TERM #EXIT ERR
+
 ## xvfb-run wrap
 if [[ "${WM_ARGS_OVERRIDE}" == "true" ]]; then
+    #TMUX= TMUX_PANE= TERM_PROGRAM_VERSION= BASH_STUFF_FIRST_SHELL_LOGIN=
     DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"                       "${WM_ARGS[@]}" &
     xvfbrunpid=$!
 else
+    #TMUX= TMUX_PANE= TERM_PROGRAM_VERSION= BASH_STUFF_FIRST_SHELL_LOGIN=
     DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"  "${XWMS_ARGS[@]:1}"  "${WM_ARGS[@]}" &
     xvfbrunpid=$!
 fi
@@ -259,17 +427,117 @@ for (( i=0; i<5; i++ )); do
 done
 unset  server_num
 pids=( "${xvfbrunpid}"  "${wmpid}" )
+#pids=(   "${wmpid}" )
 #pids=( "${wmpid}" )
 
 #echo "wmpid $wmpid" #(xvfb-run is  SH)
 
+
+
+
+
+
+#trap - HUP INT QUIT ABRT TERM
+#(
+#    trap - HUP INT QUIT ABRT TERM
+#trap 'trap - HUP INT QUIT ABRT TERM; kill -TERM -- 0'  HUP INT QUIT ABRT TERM
+
+
+"${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
+    #wait $apid
+#) & apid=$!
+#pids+=( "$apid" )
+#trap 'trap - HUP INT QUIT ABRT TERM EXIT ERR; killer; kill -9 $$ ' HUP INT QUIT ABRT TERM #EXIT ERR
+
+#echo "THSSSSSSSSSSSSSS $xvfbrunpid"
+#wait $apid
+wait "$xvfbrunpid" #"$apid"
+#echo "kill 0"
+kill -TERM -- 0
+pids+=$( "$apid" )
+
+
+
+
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### HERE 5555
+
+
 #if [[ -z "${X2_WM_EXEC[@]}" ]]; then
-(trap '' INT QUIT TERM HUP EXIT &&  "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"; printf '\n' ) & execpid=$!
-wait $execpid  ## this immediatly closes shell after contents detach
-unset  X2_WM_EXEC
+trap 'trap - HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR; killer INT; kill -9 $$ ' HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR
+
+(
+    ## redirect fifo to get pid
+    #trap 'echo "quit|exit  $!  $0"' QUIT EXIT
+    #trap 'kill -9 $!' INT TERM HUP
+    killer() {
+        echo "killing mega inner $pid"
+        kill -9 $pid
+    }
+
+    
+    #HERE
+    trap 'trap - HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR; killer; kill -9 $$' HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR
+    #trap - EXIT TERM INT QUIT KILL HUP ABRT TSTP
+    "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & pid=$!
+    trap 'trap - HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR; killer; kill -9 $$' HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR
+
+    echo "inner pid: $pid"
+    
+    wait $pid
+
+    #execpid=$!
+    #pids+=( "${execpid}" )
+    #wait $execpid
+    printf '\n'
+    #echo "execpid: $execpid"
+) &
+aspawnpid=$!
+
+echo "aspawnpid  $aspawnpid"
+
+
+trap 'trap - HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR; killer INT; kill -9 $$ ' HUP INT QUIT TRAP ABRT KILL SEGV TERM STOP TSTP EXIT ERR
+
+
+#wait $aspawnpid  ## this immediatly closes shell after contents detach
+#execpid=$!
+
+#wait $execpid  
+unset  X2_WM_EXEC #execpid
+
+
+echo "final wait on ${pids[@]}"
 
 #echo "pids: ${pids[@]}"
 wait "${pids[@]}" 2>/dev/null
+#pids+=( "$aspawnpid" )
+trap - HUP INT QUIT EXIT TRAP ABRT KILL SEGV TERM STOP TSTP
+killer
+
+
+
+
+
+
+
+
 
 
 
@@ -363,7 +631,7 @@ trap 'echo "INT pid $$  $0"' INT
 trap 'echo "QUIT pid $$  $0"' QUIT
 trap 'echo "TERM pid $$  $0"' TERM
 trap 'echo "HUP pid $$  $0"' HUP
-trap 'echo "EXIT pid $$  $0"; for x in ${pids[@]}; do \kill -9 $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT
+trap 'echo "EXIT pid $$  $0"; for (( i=$(( ${#pids[@]} -i)); i>=0; i-- )); do x=${pids[i]}; \kill  $x 2>/dev/null; done; \rm -f /tmp/.X${server_num}-lock' EXIT
 
 ( trap 'echo HUP wtf pid $$' HUP && xvfb-run --server-num "${server_num:-69}" --auth-file "${XAUTHORITY}"  --server-args "-screen 0 1024x768x24"  --  "${cmd}"  "${_HMM[@]}"   ) &  # "${cmd_args[@]}"
 xvfbrunpid=$!
@@ -385,8 +653,8 @@ pids=( "${xvfbrunpid}"  "${wmpid}" )
 echo "wmpid $wmpid" #(xvfb-run is  SH)
 
 
-(trap '' INT QUIT TERM HUP EXIT &&  "${@:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" ) & execpid=$!
-wait $execpid  ## this immediatly closes shell after contents detach
+(trap 'kill -9 $!' INT QUIT TERM HUP EXIT &&  "${@:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & ; execpid=$!; wait $execpid ) & 
+wait $execpid  ## this immediatly closes shell after contents detach and shell exits
 
 
 echo "pids: ${pids[@]}"
