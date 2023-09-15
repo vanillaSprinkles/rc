@@ -29,12 +29,20 @@ fi
 
 
 
+print_window_managers(){
+    ADDITIONAL_INDENTS=${1:-0}
+    SP=$( for (( i=0; i<${ADDITIONAL_INDENTS}; i++ )); do  printf '  '; done )
+    IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+    printf '%s%s\n  %s'  "$SP"  "Window Managers:"  "$SP";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
+    unset  ADDITIONAL_INDENTS  SP
+}
 invalid_wm() {
     echo -e "${ReD}${THIS_APP}: invalid operand\n${DeF}Useage:  ${THIS_APP}  [window manger]"
 
-    IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
-    printf '%s\n  '  "Window Managers:";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
-
+    #IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
+    #printf '%s\n  '  "Window Managers:";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
+    print_window_managers 0
+    
     exit 1
 }
 
@@ -521,6 +529,15 @@ testing="${wms_ass_testing["${wm_key}"]}"
 #echo "      newbin: ${wms_ass["${wms_ass_alts_to_bin["$arg_wm"]}"]}"
 
 
+## TODO : BIN is empty; ERROR
+if [[ -z "${bin}" ]]; then
+    cat <<EOT
+ERROR: Window Manager not found in alias / installed on system: ${arg_wm}
+EOT
+    print_window_managers 0
+    exit 1
+fi
+ 
 printf  '%s\n'  "${bin}"
 if [ -n "${args}" ]; then
     printf  '%s\n'  "${args}"  ## works for multi-line strings
