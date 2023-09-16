@@ -53,13 +53,17 @@ _DEF_ARGS=(
 
     -noxdamage  ## pulling smaller areas ("use -xdamage if your default is to have it off" ?? wtf)
 
-    -skip_dups  ## key repeats
+    -repeat     ## ey input repeat
+    -skip_dups  ## key repeat-event like N key-down in a row (just use 1 key down event)
+    -scr_keyrepeat  1-100  ## default: 4-20
+    -skip_lockkeys  ## also use nomodtweak for workarounds
+
     # -nomodtweak  ## '<' failed to send?
     -modtweak
     # -noxkb  ## shift n failed to send
     -xkb
-    -skip_lockkeys  ## also use nomodtweak for workarounds
-    #-scr_keyrepeate  1-100  ## default: 4-20
+
+    #-nonap
 
     -auth guess
 )
