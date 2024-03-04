@@ -33,7 +33,8 @@ print_window_managers(){
     ADDITIONAL_INDENTS=${1:-0}
     SP=$( for (( i=0; i<${ADDITIONAL_INDENTS}; i++ )); do  printf '  '; done )
     IFS='|' read -r -a alts <<<"${wms_ass_alts[@]}"
-    printf '%s%s\n  %s'  "$SP"  "Window Managers:"  "$SP";  for x in   ${alts[@]}  ; do printf '%s ' "${x}"; done | LC_ALL=C sort -u; printf '\n'
+    local alts_sorted=($( for x in ${alts[@]}; do printf '%s\n' "${x}"; done | LC_ALL=C sort -u ))
+    printf '%s%s\n  %s'  "$SP"  "Window Managers:"  "$SP";  for x in   ${alts_sorted[@]}  ; do printf '%s ' "${x}"; done; printf '\n'
     unset  ADDITIONAL_INDENTS  SP
 }
 invalid_wm() {
@@ -60,7 +61,7 @@ dquote_escape(){
 
 
 
-wm_mangle_names=(
+wm_mangle_names=( ## UNUSED
     ## "some_long_name=name_replacement"     "short; names; delin by combination of spaces or semicolons or both"    'custom-start-command  "ar rg1" "arg2"'
 
 
@@ -91,6 +92,8 @@ arg_var="$(cat <<'EOF'  ## also terible
 EOF
        )"
  
+
+
 
 wm_mangle_name_binary=(
 
@@ -139,13 +142,11 @@ EOF
     "args=openbox|$(
         cat <<'EOF' | sed -r 's/^ +//g;'
             --config-file
-            ~/.config/openbox/lxde-rc.xml
-            --startup
-            lxsession
+            ~/.config/openbox/menu.xml
 EOF
     )"
 
-    
+
 
     #"args=openbox|--config-file ~/.config/openbox/lxde-rc.xml  --startup \"$(dquote_escape /bin/bash -c '_A=("a a" "b b" "c cc"); echo "${_A[1]}" >>/tmp/wtf') \" "
 
@@ -210,6 +211,19 @@ EOF
     "alts=lxdm|lxde"
     "bin=lxdm|startlxde"
 
+    "insert=lxqt" ## TODO IMPLEMENT
+    "alts=lxqt-session=lxqt"
+    "bin=lxqt|startlxqt"
+
+    
+    "insert=lxde-lxde|lxsession-lxde"  ## TODO IMPLEMENT
+    "bin=lxde-lxde|/bin/sh"
+    "args=lxde-lxde|$(
+        cat <<'EOF' | sed -r 's/^ +//g;'
+            -c "$(sed -r 's!^(/usr/bin/lxsession) .*!\1 -s LXDE -e LXDE
+EOF
+    )"
+    # LXDE, GNOME, XFCE
     
 
 
@@ -245,8 +259,9 @@ ReD='\033[0;31m';    GrN='\033[0;32m';    DeF='\033[0m';
 ## pull local installs for 'window manager' and 'display manager'
 ## sanitize results with sed (strip 'local/', remove '-git')
 ## remove unnecessairy items
+## 'session manager' added to include LXQT
 wms=(
-    $(pacman -Qs 'window manager|display manager' | \
+    $(pacman -Qs 'window manager|display manager|session manager' | \
         sed -r -n '/^ /d;   s@^local/([^ ]+)(-git)? +.*@\1@g;   s@^(.*)(-git)$@\1@g; p' | \
         awk '{ if  \
                ( \
@@ -257,7 +272,8 @@ wms=(
                  $1 != "screen-vs-long-term" && \
                  $1 != "xcb-util-wm"  && \
                  $1 != "wmctrl-with-undecorated-support" && \
-                 $1 !~ /^lib.*/    \
+                 $1 !~ /^lib.*/ && \
+                 $1 != "pipewire-media-session"     \
                ) \
                print $1 \
              }'

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+
+#CMD='git log --oneline  --abbrev=7  --format="%h %H %s"'
+CMD='git log --graph --decorate --abbrev=7 --date=short --format="%C(yellow)%h %H %C(bold green)%ad  %C(white)%s  ::%C(blue)%an %C(green)%cn%C(reset)"'
+
+re='^-*h(elp)?'
+if [[ -n $1 && $1 =~ $re ]]; then
+   echo "${0}  20 log lines by default, or passes any/all params to git"
+   echo ">  $CMD  -n20"
+   exit
+fi
+
+eval "${CMD}  -n20  ${@}"
+
