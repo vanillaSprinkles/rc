@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # tmux
-TMUX=/usr/bin/tmux
 function tmux_ () {
-  MSG=$( ${TMUX} "${@}" )
+  TMUX_BIN=/usr/bin/tmux
+  MSG=$( ${TMUX_BIN} "${@}" )
   if [[ "${MSG:0:25}" == "Cannot open your terminal" ]]; then
       CMD="'tmux ${@}'"
       eval script /dev/null -c ${CMD} 

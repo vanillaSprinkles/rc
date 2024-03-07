@@ -2,7 +2,7 @@
 
 # history in multiple windows-appendage
 shopt -s histappend
-PROMPT_COMMAND='history -a'
+PROMPT_COMMAND='history -a'  #; printf "%%%$((COLUMNS-1))s\\r" '
 # dynamic resizing
 shopt -s checkwinsize
 

@@ -35,9 +35,12 @@ alias cd..ll='cd ..; ll'
 
 ### comon typos
 alias clcear="clear"
+alias emacs='TERM=xterm emacs'
 alias emcas="emacs"
 ### end typos
 
+
+alias yay='yay --sortby=name'
 
 
 alias ccrap='echo "";rm -fv *~;rm -fv \#*\#;rm -fv \.*~;rm -fv \.\#*\#;echo ""; ls -ah'
@@ -58,8 +61,6 @@ alias netstatNET='netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,
 alias mrd='xset m 0 0 &'
 alias mtp='xset m 4 5 &'
 
-#alias fehS='feh -dZ.Y --min-dimension 1x768 -B black'
-alias fehS='feh -dZ.Y  -B black; echo feh -dZ.Y -B black $1'
 
 
 emcas='emacs'
@@ -231,20 +232,37 @@ function reSata () {
 
 
 # easy extraction
+function extract_helper_subdir_in(){
+    if [ -n "$2" ] ; then
+        mkdir -p "$2"
+        pushd "$2"
+        ln -s ../"$1" .
+    fi
+    
+}
+function extract_helper_subdir_out(){
+    if [ -n "$2" ] ; then
+        unlink "$1"
+        popd
+    fi    
+}
 function extract () {
-    if [ -f $1 ] ; then
-	case $1 in
-            *.tar.bz2)   tar xvjf $1    ;;
-            *.tar.gz)    tar xvzf $1    ;;
-            *.bz2)       bunzip2 $1     ;;
-            *.rar)       unrar x $1     ;;
-            *.gz)        gunzip $1      ;;
-            *.tar)       tar xvf $1     ;;
-            *.tbz2)      tar xvjf $1    ;;
-            *.tgz)       tar xvzf $1    ;;
-            *.zip)       unzip $1       ;;
-            *.Z)         uncompress $1  ;;
-            *.7z)        7z x $1        ;;
+    if [[ -n "$2" ]]; then
+        D="${2:-.}"
+    fi
+    if [ -f "$1" ] ; then
+	case "$1" in
+            *.tar.bz2)   tar xvjf "$1"    ;;
+            *.tar.gz)    tar xvzf "$1"    ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar x "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xvf "$1"     ;;
+            *.tbz2)      tar xvjf "$1"    ;;
+            *.tgz)       tar xvzf "$1"    ;;
+            *.zip)       unzip "$1" -d "$D"       ;;
+            *.Z)         uncompress "$1"  ;;
+            *.7z)        7z x "$1"        ;;
             *)           echo "don't know how to extract '$1'..." ;;
 	esac
     else
@@ -256,7 +274,7 @@ function extract () {
 
 # easy 7z compress with password
 function 7zPw () {
-    if [ -z $1 ]; then
+    if [ -z "$1" ]; then
 	echo "7zPw <name of new archive>.7z <files to include> <optional: password>"
     else
 	datime=`date '+%Y-%m-%d_%H.%M.%S'`

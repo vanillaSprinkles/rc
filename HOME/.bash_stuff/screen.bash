@@ -13,7 +13,11 @@ function screen () {
 }
 
 alias sc='screen'
-alias sN='screen -S'
+#alias sN='screen -S'
+function sN () {
+  now=$(date "+%s.%3N")
+  screen -S ${1:-$now}
+}
 alias srx='screen -rx'
 alias rx='screen -rx'
 alias sls='screen -ls'

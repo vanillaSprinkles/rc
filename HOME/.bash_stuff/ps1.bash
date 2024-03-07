@@ -30,7 +30,7 @@ function wtitle (){
 #       PS1=`echo $cPS1 | sed -r 's/^\\\\\[.+\\\\\]//g'`
     #    export PS1="\[\033]0;$1 - \u@\h:\w\007\]${PS1}"
     oPS1="${PS1}"
-    export PS1="\[\033]0;$1 - \u@\h:\w\007\]${PS1}"
+    export -p PS1="\[\033]0;$1 - \u@\h:\w\007\]${PS1}"
  source ~/.bash_stuff/ps1.bash
 #    PS1=${oPS1}
 }
