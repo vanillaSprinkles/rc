@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### refenced from https://wiki.archlinux.org/index.php?title=Colored_Pacman_output&oldid=55358
+
 pacs() {
     local CL='\\e['
     local RS='\\e[0;0m'
@@ -42,4 +44,8 @@ pacl() {
     /\[installed\]$/s,.*,${CL}0;33m&${RS},
     ")"
 }
+
+
+
+
 

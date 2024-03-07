@@ -3,7 +3,8 @@
 #ID_DSA=1
 #ID_RSA=1
 echo -n "load sshkeys (y/n/<command>): " >&2
-read ans
+read -t 3 ans
+[[ $? != 0 ]] && echo "source ~/.bashrc to load sshkeys" && return 1
 if [[ "${ans,,}" == 'y' ]]; then
   ID_RSA=1
   ID_DSA=1
@@ -18,7 +19,7 @@ fi
 function askKey(){
   echo -n "Enable Pivate Key '$1' (y/n): " >&2
   read ans
-  [[ ${ans,,} == 'y' ]] && return 0 || return 1
+  [[ ${ans,,} == 'y' ]] && return 0 || echo "poop" && return 1
 }
 
 [[ $(pgrep ssh-agent | wc -l) == 0 ]] && eval $(ssh-agent)
