@@ -1,0 +1,6 @@
+[submodule "grawity__code"]
+	path = HOME/.bscripts/_forks/grawity__code
+	url = ssh://git@github.com/grawity/code.git
+	branch = main
+	shallow = true
+
