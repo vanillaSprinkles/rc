@@ -46,6 +46,11 @@ HOME: all my HOME rc's for an X environment setup (and then some)
 
 ----
 
+## git submodules
+use `make` to sparse-checkout + update select submodules (currently only pulling grawity/code)
+
+
+----
 
 
 RC files backed up with by calling handy-dandy script: "HOME/.bscripts/HomeDotSync"
