@@ -4,3 +4,6 @@
 	branch = main
 	shallow = true
 
+[submodule "HOME/.emacs.d/guess-style"]
+	path = HOME/.emacs.d/guess-style
+	url = https://github.com/nschum/guess-style.git
