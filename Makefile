@@ -7,7 +7,8 @@ clean:  grawity-code-utfvis-clean
 .PHONY:  all  clean  grawity-code-utfvis  grawity-code-utfvis-checkout  grawity-code-utfvis
 
 
-bscript-forks-dir = HOME/.bscripts/_forks
+bscripts-dir = HOME/.bscripts
+bscript-forks-dir = $(bscripts-dir)/_forks
 
 
 
@@ -33,6 +34,7 @@ grawity-code-utfvis-checkout:  $(grawity-code-dir)/.git/config
 grawity-code-utfvis:  grawity-code-utfvis-checkout
 	mkdir  -p  ./$(grawity-code-utfvis-cache-dir)
 	cp  -a  ./$(grawity-code-dir)/utfvis  ./$(grawity-code-utfvis-cache-dir)/.
+	ln  -srf  ./$(grawity-code-utfvis-cache-dir)/utfvis   $(bscripts-dir)/utfvis
 
 
 grawity-code-utfvis-clean:
