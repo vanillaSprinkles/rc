@@ -102,8 +102,8 @@ wm_mangle_name_binary=(
     ## args='maybe "some ards" here
 
     "alts=kwin=kde|plasma|plasma-desktop"
-    "bin=kde|startkde"
-    "args=kde|--fla 'multi thing'"
+    "bin=kde|startplasma-x11"
+    #"args=kde|--fla 'multi thing'"
 
     "alts=xfwm4|xfce|xfwm"
     "bin=xfwm4|xfwm4-session"
