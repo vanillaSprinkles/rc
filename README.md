@@ -21,26 +21,72 @@ HOME: all my HOME rc's for an X environment setup (and then some)
   ```
 
 
-
-##### symlink
-- for .bash_profile and .bashrc
-  ``` bash
-  mv -i  ~/.bash_profile  ~/.bash_profile.BAK_pre_vs_$( date --iso-8601=seconds )
-  ln -s  /home/bashDotFiles/HOME/.bash_profile  ~/.bash_profile
-  ```
+##### for new users (append to /etc/skel/.bashrc and auto create symlink when user logs-in)
+``` bash
+cat << 'EOF'  >> /etc/skel/.bashrc
 
 
-  ``` bash
-  mv -i  ~/.bashrc  ~/.bashrc.BAK_pre_vs_$( date --iso-8601=seconds )
-  ln -s  /home/bashDotFiles/HOME/.bashrc  ~/.bashrc
-  ```
+if [[ -f /home/bashDotFiles/HOME/.bashrc ]]; then
+
+  # create symlink: .bash_stuff
+  if [ ! -e ~/.bash_stuff ]; then
+     ln -s  /home/bashDotFiles/HOME/.bash_stuff  ~/.bash_stuff
+  fi
+
+  # create symlink: .bscripts
+  if [ ! -e ~/.bscripts ]; then
+     ln -s  /home/bashDotFiles/HOME/.bscripts  ~/.bscripts
+  fi
+
+  # set PATH so it includes user's private bin if it exists
+  [[ -d ~/bin ]] && PATH=~/bin:"${PATH}"
+  [[ -d ~/.bscripts ]] && PATH=~/.bscripts:"${PATH}"
+  export PATH
+
+ . /home/bashDotFiles/HOME/.bashrc
+fi
+
+EOF
+```
 
 
-- for alias' and bin/scripts
-  ``` bash
-  ln -s  /home/bashDotFiles/HOME/.bash_stuff  ~/.bash_stuff
-  ln -s  /home/bashDotFiles/HOME/.bscripts  ~/.bscripts
-  ```
+##### symlink (current user cutover; create symlinks ect)
+``` bash
+cat << 'EOF'  >> ~/.bashrc
+
+
+if [[ -f /home/bashDotFiles/HOME/.bashrc ]]; then
+
+  # create symlink: .bash_stuff
+  if [ ! -e ~/.bash_stuff ]; then
+     ln -s  /home/bashDotFiles/HOME/.bash_stuff  ~/.bash_stuff
+  fi
+
+  # create symlink: .bscripts
+  if [ ! -e ~/.bscripts ]; then
+     ln -s  /home/bashDotFiles/HOME/.bscripts  ~/.bscripts
+  fi
+
+  # set PATH so it includes user's private bin if it exists
+  [[ -d ~/bin ]] && PATH=~/bin:"${PATH}"
+  [[ -d ~/.bscripts ]] && PATH=~/.bscripts:"${PATH}"
+  export PATH
+
+ . /home/bashDotFiles/HOME/.bashrc
+fi
+
+EOF
+```
+
+``` bash
+. ~/.bashrc
+```
+
+
+
+
+
+
 
 
 
