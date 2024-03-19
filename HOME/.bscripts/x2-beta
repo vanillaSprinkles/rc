@@ -141,7 +141,8 @@ killer() {
 
 
 if [[ ! -e "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc" ]]; then
-    echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
+    pritnf "first time running %s; creating file: %s\n"  "${THIS_BIN}"  "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"
+
     mkdir -p "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/"
     cat <<'EOF' > "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"
 #!/usr/bin/bash
@@ -151,7 +152,7 @@ if [[ ! -e "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc" ]]; then
 
 # eval "$(cat ~/.fehbg)" &
 
-# alacritty -e /bin/tmux news >/dev/null 2>&1 &
+# while :; do alacritty -e /usr/bin/tmux new-session; done >/dev/null 2>&1 &
 
 # x11vnc_simple -passwd '1234' &
 
@@ -498,6 +499,7 @@ pids=( "${xvfbrunpid}"  "${wmpid}" )
 #    trap - HUP INT QUIT ABRT TERM
 #trap 'trap - HUP INT QUIT ABRT TERM; kill -TERM -- 0'  HUP INT QUIT ABRT TERM
 
+<<<<<<< Updated upstream
 
 
 
@@ -554,6 +556,11 @@ while IFS=  read -rd '' var; do [[ ! "${var}" =~ ^(BASH_FUNC_[^=]+)= ]] && decla
 
 ## start x2initrc
 ## todo test: eval "$(cat x2initrc)"
+||||||| Stash base
+
+=======
+echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
+>>>>>>> Stashed changes
 "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
 
 
