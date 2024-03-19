@@ -499,7 +499,6 @@ pids=( "${xvfbrunpid}"  "${wmpid}" )
 #    trap - HUP INT QUIT ABRT TERM
 #trap 'trap - HUP INT QUIT ABRT TERM; kill -TERM -- 0'  HUP INT QUIT ABRT TERM
 
-<<<<<<< Updated upstream
 
 
 
