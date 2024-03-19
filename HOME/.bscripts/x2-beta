@@ -87,12 +87,49 @@ EOT
 }
 
 
+killer_reap_child_pids=()
+
+get_child_pids() {
+
+    for pid in $(cat /proc/${1}/task/*/children  2>/dev/null ); do
+	killer_reap_child_pids+=( "${pid}" )
+	get_child_pids "${pid}"
+    done
+
+}
+
 
 
 killer() {
     SIG=${1:-TERM}
-    echo "######### killer time"
+    echo "######### killer time - cleaning proccess"
+
+    for x in ${pids[@]}; do
+	get_child_pids ${x}
+    done
+
     kill -${SIG} -- 0 #-${pids[@]}
+
+    
+    for x in ${killer_reap_child_pids[@]}; do
+	if [[ -e /proc/${x} ]]; then
+	    kill -${SIG} -- -${x}
+	fi
+    done
+
+    sleep 3s
+
+    for x in ${killer_reap_child_pids[@]}; do
+	if [[ -e /proc/${x} ]]; then
+	    kill -9 ${x}
+	fi
+    done
+
+    kill -9 -- 0 #-${pids[@]}
+
+    #### get list of child pids from xvfb-run so they get reap'd on kill
+
+
     #for x in ${pids[@]}; do
     #    echo "killing -${SIG}  $x   ( $(ps aux | grep $x | grep -v grep) )"
     #    kill -${SIG} -$x
@@ -104,6 +141,7 @@ killer() {
 
 
 if [[ ! -e "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc" ]]; then
+    echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
     mkdir -p "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/"
     cat <<'EOF' > "${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"
 #!/usr/bin/bash
@@ -133,6 +171,17 @@ arg_mode="wm-pre" # "wm-post" # each arg should be an exec-file or an exec-comma
 arg_WM=''
 WM_ARGS=()
 X2_WM_EXEC=()
+
+
+## not the best idea to enable this
+#if [[ -z "${DBUS_SESSION_BUS_ADDRESS}" ]]; then
+#    export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+#fi
+## create a session via: sous
+if [[ -n "${DBUS_SESSION_BUS_ADDRESS}" && -z "${XDG_RUNTIME_DIR}" ]]; then
+    export XDG_RUNTIME_DIR="${DBUS_SESSION_BUS_ADDRESS%/*}"  ## remove ending /bus
+fi
+
 
 
 
@@ -304,8 +353,10 @@ unset  ARGS arg_mode  arg_XAUTHORITY  arg_DISPLAY  arg_VRES  arg_WM  arg_DISPLAY
 
 
 
+oIFS="${IFS}"
 IFS=$'\n' XWMS_ARGS=($( "${XWMS_BIN}"  "${WM}"))  ## [0] is CMD;  [1+] are 'default' args
 RET=$?
+IFS="${oIFS}"
 if [[ "${RET}" -gt 0 ]]; then
     if [[ -z "${WM}" ]]; then
         cat <<EOT
@@ -396,6 +447,9 @@ unset -v  SSH_CLIENT  SSH_CONNECTION  SSH_TTY
 #trap 'trap - HUP INT QUIT ABRT TERM ; killer; echo trap-kill; kill -TERM -- 0' HUP INT QUIT ABRT TERM #EXIT ERR
 trap 'trap - HUP INT QUIT ABRT TERM ; killer; kill -TERM -- 0' HUP INT QUIT ABRT TERM #EXIT ERR
 
+#echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
+#"${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
+
 ## xvfb-run wrap
 if [[ "${WM_ARGS_OVERRIDE}" == "true" ]]; then
     #TMUX= TMUX_PANE= TERM_PROGRAM_VERSION= BASH_STUFF_FIRST_SHELL_LOGIN=
@@ -407,6 +461,7 @@ else
     xvfbrunpid=$!
 fi
 
+printf 'xvfb-run pid: %s\n\n'  "${xvfbrunpid}"
 unset  WM_ARGS_OVERRIDE  VRES  XWMS_ARGS  WM_ARGS
 
 
@@ -420,7 +475,7 @@ for (( i=0; i<5; i++ )); do
       echo "xvfb-run died; pid dne ${xvfbrunpid}"
       exit
   fi
-  sleep 3
+  sleep 1
   if [ -f "/tmp/.X${server_num}-lock" ]; then
       wmpid=$(tr -d ' ' < "/tmp/.X${server_num}-lock")  ## Xvfb pid
       break
@@ -444,8 +499,67 @@ pids=( "${xvfbrunpid}"  "${wmpid}" )
 #trap 'trap - HUP INT QUIT ABRT TERM; kill -TERM -- 0'  HUP INT QUIT ABRT TERM
 
 
+
+
+
+printf "running x2initrc from file: %s\n\n"  "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
+
+
+#while IFS= read -rd '' var; do  [[ ! "${var}" =~ ^(BASH_FUNC_[^=]+)= ]] && echo "${var}" && declare -x "${var}"; done < /proc/${wmpid}/environ
+
+itr_max=6
+xvfbrunpid_child_with_xdg=-1
+## loop over child-pids of Xvfb-run, look for first pid where env-vars XDG_ is in use
+for (( itr=0; itr< ${itr_max}; itr++ )); do
+
+    while [[ ! -e "/proc/${xvfbrunpid}/task/${xvfbrunpid}/children" ]]; do
+	## todo die after x iterations
+	echo "sleep 0.5s wait for children to exit"
+	sleep 0.5
+    done
+    for child_pid in $(cat /proc/${xvfbrunpid}/task/${xvfbrunpid}/children ); do
+	#if [[  "$(cat /proc/${child_pid}/comm)" != "Xvfb"  &&
+	if [[ $( < "/proc/${child_pid}/environ"   xargs -0 -n1 |  grep -cE '^XDG_') -gt 2 ]]; then
+	    itr=${itr_max}
+	    xvfbrunpid_child_with_xdg=${child_pid}
+	    echo "xvfbrunpid_child_pid WITH XDG_:  ${xvfbrunpid_child_with_xdg}"
+	    break
+	fi
+    done
+    if [[ $itr -lt $itr_max ]]; then
+	echo "sleeping looking for child pids with XDG_ set"
+	sleep 1 #$((1+${itr_max}))
+    fi
+done
+
+
+#_do_in_killer_##### get list of child pids from xvfb-run so they get reap'd on kill
+#_do_in_killer_#xvfbrunpid_children=()
+#_do_in_killer_#for child_pid in $(cat /proc/${xvfbrunpid}/task/*/children); do
+#_do_in_killer_#    xvfbrunpid_children+=$( ls -1 /proc/${child_pid}/task/ )
+#_do_in_killer_#    for sub_child_pid in $( cat /proc/${child_pid}/task/*/children); do
+#_do_in_killer_#	xvfbrunpid_children+=$( ls -1 /proc/${sub_child_pid}/task/ )
+#_do_in_killer_#    done
+#_do_in_killer_#done
+#_do_in_killer_## echo "xvfb-run child pids: ${xvfbrunpid_children[@]}"
+#_do_in_killer_#
+
+
+#env_copy_file="/proc/$(awk '{print $2}'  /proc/${wmpid}/task/${wmpid}/children)/environ"
+printf 'copy env from %s\n\n'  "/proc/${xvfbrunpid_child_with_xdg}/environ"
+
+## copy env-vars from sub-process where XDG_ exists (skip BASH_FUNC_ as it causes errors; possible to skip/removes others)
+while IFS=  read -rd '' var; do [[ ! "${var}" =~ ^(BASH_FUNC_[^=]+)= ]] && declare -x "${var}"; done  < /proc/${child_pid}/environ
+#eval "$(cat "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}")" & apid=$!
+
+## start x2initrc
+## todo test: eval "$(cat x2initrc)"
 "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
-    #wait $apid
+
+
+
+
+#wait $apid
 #) & apid=$!
 #pids+=( "$apid" )
 #trap 'trap - HUP INT QUIT ABRT TERM EXIT ERR; killer; kill -9 $$ ' HUP INT QUIT ABRT TERM #EXIT ERR
@@ -461,6 +575,30 @@ pids+=$( "$apid" )
 
 
 exit
+
+
+
+
+
+
+
+
+## BELOW PREVIOUS ITERATION STUFF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
