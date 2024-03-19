@@ -553,14 +553,11 @@ printf 'copy env from %s\n\n'  "/proc/${xvfbrunpid_child_with_xdg}/environ"
 while IFS=  read -rd '' var; do [[ ! "${var}" =~ ^(BASH_FUNC_[^=]+)= ]] && declare -x "${var}"; done  < /proc/${child_pid}/environ
 #eval "$(cat "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}")" & apid=$!
 
+
 ## start x2initrc
 ## todo test: eval "$(cat x2initrc)"
-||||||| Stash base
-
-=======
-echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
->>>>>>> Stashed changes
 "${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
+
 
 
 
