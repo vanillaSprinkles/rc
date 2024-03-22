@@ -10,7 +10,7 @@
 ### TODO: parse args properly
 if [[ "${1,,}" =~ -+off ]]; then
     shift
-    sudo systemctl stop user@$(id -u ${1})
+    sudo -N systemctl stop user@$(id -u ${1})
     exit
 fi
 
@@ -22,4 +22,4 @@ sudo systemctl start user@$id
 
 ## added XDG_RUNTIME_DIR to trick x2-beta (added to x2-beta)
 # exec sudo -u $otheruser   DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$id/bus  XDG_RUNTIME_DIR=/run/user/$id   systemd-run --user --scope --shell
-exec sudo -u $otheruser   DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$id/bus  systemd-run --user --scope --shell
+exec sudo -N -i -H -u $otheruser   DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$id/bus  --  systemd-run  --user --scope --shell
