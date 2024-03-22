@@ -180,7 +180,8 @@ X2_WM_EXEC=()
 #fi
 ## create a session via: sous
 if [[ -n "${DBUS_SESSION_BUS_ADDRESS}" && -z "${XDG_RUNTIME_DIR}" ]]; then
-    export XDG_RUNTIME_DIR="${DBUS_SESSION_BUS_ADDRESS%/*}"  ## remove ending /bus
+    XDG_RUNTIME_DIR="${DBUS_SESSION_BUS_ADDRESS%/*}"  ## remove ending /bus
+    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR##unix:path=}"  ## remove beginning unix:path=
 fi
 
 
@@ -357,7 +358,6 @@ unset  ARGS arg_mode  arg_XAUTHORITY  arg_DISPLAY  arg_VRES  arg_WM  arg_DISPLAY
 oIFS="${IFS}"
 IFS=$'\n' XWMS_ARGS=($( "${XWMS_BIN}"  "${WM}"))  ## [0] is CMD;  [1+] are 'default' args
 RET=$?
-IFS="${oIFS}"
 if [[ "${RET}" -gt 0 ]]; then
     if [[ -z "${WM}" ]]; then
         cat <<EOT
@@ -372,7 +372,8 @@ EOT
     done
     exit ${RET:-1}
 fi
-unset  XWMS_BIN  WM  RET
+IFS="${oIFS}"
+unset  XWMS_BIN  WM  RET  oIFS
 
 
 
