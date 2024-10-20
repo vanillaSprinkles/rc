@@ -452,14 +452,17 @@ trap 'trap - HUP INT QUIT ABRT TERM ; killer; kill -TERM -- 0' HUP INT QUIT ABRT
 #echo "running x2initrc from file: ${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}"
 #"${X2_WM_EXEC[@]:-"${XDG_DATA_HOME:-"${HOME}/.local/share"}/bscripts/x2initrc"}" & apid=$!
 
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+
 ## xvfb-run wrap
 if [[ "${WM_ARGS_OVERRIDE}" == "true" ]]; then
     #TMUX= TMUX_PANE= TERM_PROGRAM_VERSION= BASH_STUFF_FIRST_SHELL_LOGIN=
-    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"                       "${WM_ARGS[@]}" &
+    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num="${server_num}" --auth-file="${XAUTHORITY}"  --server-args="-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"                       "${WM_ARGS[@]}" &
     xvfbrunpid=$!
 else
     #TMUX= TMUX_PANE= TERM_PROGRAM_VERSION= BASH_STUFF_FIRST_SHELL_LOGIN=
-    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num "${server_num}" --auth-file "${XAUTHORITY}"  --server-args "-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"  "${XWMS_ARGS[@]:1}"  "${WM_ARGS[@]}" &
+    DISPLAY="${DISPLAY}"  XAUTHORITY="${XAUTHORITY}"  xvfb-run --server-num="${server_num}" --auth-file="${XAUTHORITY}"  --server-args="-screen ${SCREEN} ${VRES}"  --  "${XWMS_ARGS[0]}"  "${XWMS_ARGS[@]:1}"  "${WM_ARGS[@]}" &
     xvfbrunpid=$!
 fi
 

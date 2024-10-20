@@ -102,8 +102,8 @@ wm_mangle_name_binary=(
     ## args='maybe "some ards" here
 
     "alts=kwin=kde|plasma|plasma-desktop"
-    "bin=kde|startplasma-x11"
-    #"args=kde|--fla 'multi thing'"
+    "bin=kde|startkde"
+    "args=kde|--fla 'multi thing'"
 
     "alts=xfwm4|xfce|xfwm"
     "bin=xfwm4|xfwm4-session"
@@ -117,6 +117,15 @@ wm_mangle_name_binary=(
 
     "alts=enlightenment16|e16"
     "bin=enlightenment16|starte16"
+
+    "insert=gnome"
+    "alts=gnome"
+    "bin=gnome|gnome-shell"
+    "args=gnome|$(
+        cat <<EOF | sed -r 's/^ +//g';
+            --replace
+EOF
+    )"
 
     "alts=openbox"
     ## WORKS; notice no quotes around last argument
@@ -485,6 +494,20 @@ for (( m=0; m<${#wm_mangle_name_binary[@]}; m++ )); do
             wms_ass_testing["${ass_key}"]="${mval#*|}"
             unset ass_key
         ;;
+	insert)
+	    ass_key="${mval%%|*}"
+	    alts="${mval##*=}"
+	    #echo  "$ass_key   $alts"
+	    wms_ass["${ass_key}"]="${ass_key}"  ## inject keyname to bin-list
+	    wms_ass_alts["${ass_key}"]="${alts}"  ## add alts to alts list
+
+	    ## add alts to bin-list
+	    for aalt in $(tr '|' '\n' <<<"${alts}"); do
+		wms_ass_alts_to_bin["${aalt}"]="${ass_key}"
+	    done
+
+	    unset  ass_key  alts
+	;;
         *)
             #echo "mv: ${mv}"
             #echo "   mkey: ${mkey}"
