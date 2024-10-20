@@ -20,7 +20,7 @@ fi
 _FIFO=/tmp/fast.com.test.fifo-$(whoami)
 mkfifo "${_FIFO}"
 
-token=$(curl "$@" -s https://fast.com/app-ed402d.js|grep -E -om1 'token:"[^"]+'|cut -f2 -d'"')
+token=$(curl "$@" -s https://fast.com/app-ed402d.js|grep -E -om1 'token:"[^"]+'|cut -f2 -d'"')  ## sed -r 's/.*token:"([^"]+)".*/\1/g;q'
 
 curl "$@" -s "https://api.fast.com/netflix/speedtest?https=true&token=$token" |grep -E -o 'https[^"]+'| \
      while read url; do

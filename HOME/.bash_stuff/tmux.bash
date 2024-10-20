@@ -24,3 +24,23 @@ alias tmls='tmLs'
 alias tmD='tmux detach'
 alias tmd='tmD'
 alias tmK='tmux kill-session -t'
+
+
+
+
+tmuxr () {
+    # https://news.ycombinator.com/item?id=40598629
+    if [ -z $1 ]
+    then
+        tmux list-sessions
+        return
+    fi
+    tmux detach -s $1 2> /dev/null
+    if [ -n "${TMUX+1}" ]
+    then
+        tmux switch-client -t $1 2> /dev/null || tmux new-session -s $1
+    else
+        tmux attach-session -t $1 2> /dev/null || tmux new-session -s $1
+    fi
+}
+
