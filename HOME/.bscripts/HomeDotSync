@@ -124,15 +124,23 @@ exclusionsCFG="${gexcl}  ${GRI}  --exclude=dwb-uni.fifo --exclude SingletonLock 
 exclusionsEMACS="${gexcl}  ${GRI}"
 
 
-##
+
+
+
+#####
 # main dots
 sz_privC="${#privC[@]}" ## priv Custom-rsync command
 for ((itr=0;itr<sz_privC;itr++)); do
+    echo "stub: needs work"
   # 0  command +1  file
-    if (( $itr %  2 == 0 )); then
-	${privC[$itr]}  $exclusions  ~/"${privC[$((itr+1))]}"   "${DotFiles}"/priv/
-	dotFiles+=("${privC[$((itr+1))]}")
-    fi
+    # if (( $itr %  2 == 0 )); then
+    #     if [[ -e ~/"${privC[$((itr+1))]}" ]]; then
+    #         ${privC[$itr]}  $exclusions  ~/"${privC[$((itr+1))]}"   "${DotFiles}"/priv/
+    #         dotFiles+=("${privC[$((itr+1))]}")
+    #     else
+    #         dotFiles_DNE+=("${privC[$((itr+1))]}")
+    #     fi
+    # fi
 done
 
 
@@ -149,10 +157,15 @@ done
 
 sz_pubC="${#pubC[@]}" ## pub Custom-rsync command
 for ((itr=0;itr<sz_pubC;itr++)); do
-    if (( $itr % 2 == 0 )); then
-	${pubC[$itr]}  $exclusions   ~/"${pubC[$((itr+1))]}"   "${DotFiles}"/pub/
-	dotFiles+=("${pubC[$((itr+1))]}")
-    fi
+    echo "stub: needs work" ## supporting bash globs makes this a 3d-array problem [or dictionary]
+    # if (( $itr % 2 == 0 )); then
+    #     if [[ -e ~/"${pubC[$((itr+1))]}" ]]; then
+    #         ${pubC[$itr]}  $exclusions   ~/"${pubC[$((itr+1))]}"   "${DotFiles}"/pub/
+    #         dotFiles+=("${pubC[$((itr+1))]}")
+    #     else
+    #         dotFiles_DNE+=("${pubC[$((itr+1))]}")
+    #     fi
+    # fi
 done
 
 
