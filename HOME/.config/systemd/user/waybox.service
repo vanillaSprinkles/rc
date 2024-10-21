@@ -1,0 +1,15 @@
+[Unit]
+Description=waybox
+Documentation=man:waybox(5)
+BindsTo=graphical-session.target
+Wants=graphical-session-pre.target
+After=graphical-session-pre.target
+
+[Service]
+Type=simple
+#EnvironmentFile=-%h/.config/sway/env
+ExecStartPre=systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY # This line make you able to logout to dm and login into sway again
+ExecStart=/usr/bin/waybox
+Restart=on-failure
+RestartSec=1
+TimeoutStopSec=10

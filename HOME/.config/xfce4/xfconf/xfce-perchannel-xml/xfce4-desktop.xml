@@ -9,6 +9,71 @@
         <property name="image-style" type="int" value="3"/>
         <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
         <property name="last-single-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        <property name="last-image-list" type="string" value="/home/<user>/.config/xfce4/desktop/backdrop.list"/>
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace1" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace2" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace3" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+      </property>
+      <property name="monitorLVDS-1" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace1" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace2" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace3" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+      </property>
+      <property name="monitorscreen" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace1" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace2" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
+        <property name="workspace3" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="last-image" type="string" value="/home/wallz/wallpaper-1989162.jpg"/>
+        </property>
       </property>
     </property>
   </property>
@@ -21,5 +86,9 @@
       <property name="show-home" type="bool" value="true"/>
     </property>
     <property name="style" type="int" value="2"/>
+  </property>
+  <property name="last" type="empty">
+    <property name="window-width" type="int" value="653"/>
+    <property name="window-height" type="int" value="619"/>
   </property>
 </channel>

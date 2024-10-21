@@ -1,3 +1,2 @@
 "Graphics"
 "Converseen" "/usr/share/pixmaps/converseen.png" exec "converseen"
-"feh" "/usr/share/feh/images/logo.svg" exec "feh"

@@ -1,0 +1,2 @@
+"FileManager"
+"Enlightenment File Manager" "/usr/share/icons/gnome/48x48/apps/system-file-manager.png" exec "enlightenment_filemanager"

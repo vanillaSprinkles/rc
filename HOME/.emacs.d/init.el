@@ -1,14 +1,26 @@
 (package-initialize)
+
+;; Maximum colors
+(setq font-lock-maximum-decoration t)
+
+(setq frame-backgroundmode 'dark)
+
+
 (setq-default indent-tabs-mode nil)  ;; tabs disabled 
 (add-to-list 'load-path "~/.emacs.d/elisp_scripts/")
-
-
 (dolist (unkey '("\C-z"
-                 "\C-h" "\C-H"))
+                 "\C-h"  "\C-H"
+                 "\C-f"
+                 "\M-c"
+                 "\C-j" "\C-\M-j"
+                 "\C-t" "\C-\M-T"))
   (global-unset-key unkey))
 
 ;;(global-set-key (kbd "C-h") 'delete-backward-char)
+(require 'redo+)
 (global-set-key "\C-z" 'undo)
+(global-set-key "\C-\M-z" 'redo)
+(global-set-key (kbd "C-S-F") 'redo) ; ctrl+shift+f (putty fail) ;;https://www.emacswiki.org/emacs/redo+.el
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
@@ -34,7 +46,7 @@
   "Appends argument at the end of emacs-config-dir using expand-file-name"
   (expand-file-name path emacs-config-dir))
 
-(load-file (get-config-path "mode-customizations.el"))
+;NOT_ROOT_;(load-file (get-config-path "mode-customizations.el"))
 
 
 
@@ -92,36 +104,39 @@
 
 
 
-
 (custom-set-faces
-;  use  C-u C-x =    see the face at cursor position
-;
-;   custom-set-faces was added by Custom.
-;   If you edit it by hand, you could mess it up, so be careful.
-;   Your init file should contain only one such instance.
-;   If there is more than one, they won't work right.
-;  '(default ((t (:inherit nil :stipple nil :background "lightyellow2" :foreground "gray20" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight bold :width normal :family "liberation mono"))))
-
-;  '(default ((t (:inherit nil :stipple nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight bold :width normal :family "liberation mono"))))
-
-;  '(background "blue")
-;  '(font-lock-builtin-face ((((class color) (background dark)) (:foreground "Turquoise"))))
-;  '(font-lock-comment-face ((t (:foreground "MediumAquamarine"))))
-;  '(font-lock-constant-face ((((class color) (background dark)) (:bold t :foreground "DarkOrchid"))))
-;  '(font-lock-doc-string-face ((t (:foreground "green2"))))
-;;  '(font-lock-function-name-face ((t (:foreground "SkyBlue"))))
-;  '(font-lock-keyword-face ((t (:bold t :foreground "CornflowerBlue"))))
-;  '(font-lock-preprocessor-face ((t (:italic nil :foreground "CornFlowerBlue"))))
-;  '(font-lock-reference-face ((t (:foreground "DodgerBlue"))))
-;  '(font-lock-string-face ((t (:foreground "LimeGreen"))))
-
-  '(font-lock-function-name-face ((t (:foreground "royalblue"))))
-
-;  '(font-lock-comment-face ((t (:foreground "firebrick"))))
-;    '(font-lock-comment-delimiter-face  ((t (:foreground "firebrick"))))
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(font-lock-function-name-face ((t (:foreground "royalblue")))))
 
 
-)
+
+
+
+
+
+
+
+;;off;;(custom-set-faces
+;;off;;
+;;off;; '(term-color-black ((t (:foreground "#3F3F3F" :background "#2B2B2B"))))
+;;off;; '(term-color-red ((t (:foreground "#AC7373" :background "#8C5353"))))
+;;off;; '(term-color-green ((t (:foreground "#7F9F7F" :background "#9FC59F"))))
+;;off;; '(term-color-yellow ((t (:foreground "#DFAF8F" :background "#9FC59F"))))
+;;off;; '(term-color-blue ((t (:foreground "#7CB8BB" :background "#4C7073"))))
+;;off;; '(term-color-magenta ((t (:foreground "#DC8CC3" :background "#CC9393"))))
+;;off;; '(term-color-cyan ((t (:foreground "#93E0E3" :background "#8CD0D3"))))
+;;off;; '(term-color-white ((t (:foreground "#DCDCCC" :background "#656555"))))
+;;off;;
+;;off;; '(term-default-fg-color ((t (:inherit term-color-white))))
+;;off;; '(term-default-bg-color ((t (:inherit term-color-black))))
+;;off;;
+;;off;; '(font-lock-function-name-face ((t (:foreground "royalblue"))))
+;;off;;  )
+;;off;;
+
 
 (cua-mode 1)
 ;;(add-to-list 'load-path "~/.emacs.d/elisp_scripts/")
@@ -185,3 +200,53 @@
 
 
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages '(##)))
+
+
+
+(setq auto-mode-alist '(("\\.ad[bs]\\'"   . ada-mode)
+                        ("\\.awk\\'"      . awk-mode)
+                        ("\\.lex\\'"      . c-mode)
+                        ("\\.[cy]\\'"     . c++-mode)
+                        ("\\.h\\'"        . c++-mode)
+                        ("\\.hxx\\'"      . c++-mode)
+                        ("\\.[CH]\\'"     . c++-mode)
+                        ("\\.java\\'"     . java-mode)
+                        ("\\.cc\\'"       . c++-mode)
+                        ("\\.hh\\'"       . c++-mode)
+                        ("\\.cxx\\'"      . c++-mode)
+                        ("\\.cpp\\'"      . c++-mode)
+                        ;("\\.rc\\'"       . c++-mode) ;; resource files
+                        ("\\.rcv\\'"      . c++-mode)
+                        ("\\.m\\'"        . matlab-mode)
+                        ("\\.p[lm]\\'"    . perl-mode)
+                        ("\\.cgi\\'"      . perl-mode)
+                        ("\\.f\\'"      . fortran-mode)
+                        ("\\.F\\'"      . fortran-mode)
+                        ("\\.f90\\'"      . f90-mode)
+                        ("\\.F90\\'"      . f90-mode)
+                        ("\\.el\\'"       . emacs-lisp-mode)
+                        ("\\.emacs\\'"    . emacs-lisp-mode)
+                        ("\\.tex\\'"      . LaTeX-mode)
+                        ("\\.bib\\'"      . bibtex-mode)
+                        ("[Mm]akefile\\'" . makefile-mode)
+                        ("\\.mak\\'"      . makefile-mode)
+                        ("\\[Mm]akefile.\\'" . makefile-mode)
+                        ("\\.bat\\'"      . shell-script-mode)
+                        ("\\.tar\\'"      . tar-mode)
+                        ("\\.php\\'"     . php-mode)
+                        ("\\.html\\'"     . html-mode)
+                        ("\\.jnlp\\'"     . html-mode)
+                        ("\\.xml\\'"     . html-mode)
+                        ("\\.pddl\\'"     . lisp-mode)
+                        ("\\.css\\'"      . css-mode)
+                        ("\\.py\\'"       . python-mode)
+                        ("\\.yml\\'"      . yaml-mode)
+                        ("\\.lisp\\'"     . lisp-mode)
+                        ("\\.rc\\'"       . conf-unix-mode)
+                        ))
