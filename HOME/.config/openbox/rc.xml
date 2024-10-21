@@ -178,6 +178,18 @@
   </dock>
   <keyboard>
     <chainQuitKey>C-g</chainQuitKey>
+    <!-- xfce4-appfinder -->
+    <keybind key="W-r">
+      <action name="Execute">
+        <command>gmrun</command>
+      </action>
+    </keybind>
+    <keybind key="W-S-r">
+      <action name="Execute">
+        <command>xfce4-appfinder</command>
+      </action>
+    </keybind>
+    <!-- END xfce4-appfinder -->
     <!-- Keybindings for desktop switching -->
     <keybind key="C-A-Left">
       <action name="GoToDesktop">
@@ -325,29 +337,25 @@
         <command>kfmclient openProfile filemanagement</command>
       </action>
     </keybind>
-
-      <keybind key="A-W-KP_Add">
-	<action name="Execute">
-	  <execute>transset-df -p .05 --inc </execute>
-	</action>
-      </keybind>
-      <keybind key="A-W-KP_Subtract">
-	<action name="Execute">
-	  <execute>transset-df -p .05 --dec </execute>
-	</action>
-      </keybind>
-      <keybind key="A-W-d">
-        <action name="ToggleDecorations"/>
-      </keybind>
-      <keybind key="A-W-r">
-        <action name="Resize" />
-      </keybind>
-      <keybind key="A-W-m">
-        <action name="Move" />
-      </keybind>
-
-
-
+    <keybind key="A-W-KP_Add">
+      <action name="Execute">
+        <execute>transset-df -p .05 --inc </execute>
+      </action>
+    </keybind>
+    <keybind key="A-W-KP_Subtract">
+      <action name="Execute">
+        <execute>transset-df -p .05 --dec </execute>
+      </action>
+    </keybind>
+    <keybind key="A-W-d">
+      <action name="ToggleDecorations"/>
+    </keybind>
+    <keybind key="A-W-r">
+      <action name="Resize"/>
+    </keybind>
+    <keybind key="A-W-m">
+      <action name="Move"/>
+    </keybind>
   </keyboard>
   <mouse>
     <dragThreshold>1</dragThreshold>
@@ -362,6 +370,7 @@
     <!-- Set this to TRUE to move the mouse pointer across the desktop when
        switching due to hitting the edge of the screen -->
     <context name="Frame">
+      <!--
       <mousebind button="A-Left" action="Press">
         <action name="Focus"/>
         <action name="Raise"/>
@@ -405,6 +414,7 @@
           <to>next</to>
         </action>
       </mousebind>
+-->
       <mousebind button="A-S-Up" action="Click">
         <action name="SendToDesktop">
           <to>previous</to>
@@ -421,7 +431,7 @@
         <action name="Move"/>
       </mousebind>
       <mousebind button="Left" action="DoubleClick">
-        <action name="ToggleMaximize"/>
+        <action name="ToggleShade"/>
       </mousebind>
       <mousebind button="Up" action="Click">
         <action name="if">
@@ -443,19 +453,16 @@
           </then>
         </action>
       </mousebind>
-
-
       <mousebind button="A-C-W-Up" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --inc </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --inc </execute>
+        </action>
       </mousebind>
       <mousebind button="A-C-W-Down" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --dec </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --dec </execute>
+        </action>
       </mousebind>
-
     </context>
     <context name="Titlebar Top Right Bottom Left TLCorner TRCorner BRCorner BLCorner">
       <mousebind button="Left" action="Press">
@@ -475,20 +482,16 @@
           <menu>client-menu</menu>
         </action>
       </mousebind>
-
       <mousebind button="A-C-W-Up" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --inc </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --inc </execute>
+        </action>
       </mousebind>
       <mousebind button="A-C-W-Down" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --dec </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --dec </execute>
+        </action>
       </mousebind>
-
-
-
     </context>
     <context name="Top">
       <mousebind button="Left" action="Drag">
@@ -548,19 +551,16 @@
         <action name="Focus"/>
         <action name="Raise"/>
       </mousebind>
-
       <mousebind button="A-C-W-Up" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --inc </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --inc </execute>
+        </action>
       </mousebind>
       <mousebind button="A-C-W-Down" action="Click">
-	<action name="Execute">
-	  <execute>transset-df -p .02 --dec </execute>
-	</action>
+        <action name="Execute">
+          <execute>transset-df -p .02 --dec </execute>
+        </action>
       </mousebind>
-
-
     </context>
     <context name="Icon">
       <mousebind button="Left" action="Press">
@@ -819,7 +819,5 @@
 
   # end of the example
 -->
- 
-
   </applications>
 </openbox_config>

@@ -1,0 +1,2 @@
+"Audio"
+"Emixer" "/usr/share/pixmaps/emixer.png" exec "emixer"

@@ -11,25 +11,26 @@
 
 <openbox_menu xmlns="http://openbox.org/3.4/menu">
 
+
   <menu id="quickApps" label="quickApps">
-    <item label="iron">
+    <item label="firefox">
       <action name="Execute">
-	<!--	<command>sh -c "iron > /tmp/iron_msgs_$(datime) 2>&amp;1" </command> /-->
-	<command>sh -c "ironL"</command>
+	<command>firefox</command>
 	<startupnotify>	<enabled>yes</enabled>      </startupnotify>
       </action>
     </item>
-    <item label="iron incognito">
+
+
+    <item label="xfce4-appfinder (W-S-r)">
       <action name="Execute">
-	<!--	<command>sh -c "iron > /tmp/iron_msgs_$(datime) 2>&amp;1" </command> /-->
-	<command>sh -c "ironLincog"</command>
+	<command>xfce4-appfinder</command>
 	<startupnotify>	<enabled>yes</enabled>      </startupnotify>
       </action>
     </item>
     
-    <item label="termite">
+    <item label="alacritty">
       <action name="Execute">
-	<command>termite</command>
+	<command>alacritty</command>
 	<startupnotify>	  <enabled>yes</enabled>	</startupnotify>
       </action>
     </item>
@@ -261,6 +262,14 @@
 </menu>
 
 <menu id="apps-multimedia-menu" label="Multimedia">
+  <item label="VLC">
+    <action name="Execute">
+      <command>vlc</command>
+      <startupnotify>
+        <enabled>yes</enabled>
+      </startupnotify>
+    </action>
+  </item>
   <item label="Amarok">
     <action name="Execute">
       <command>amarok</command>
@@ -424,15 +433,25 @@
 </menu>
 
 <menu id="root-menu" label="Openbox 3">
-  <item label="termite">
+  <item label="alacritty">
     <action name="Execute">
-      <command>termite</command>
+      <command>alacritty</command>
       <startupnotify>
 	<enabled>yes</enabled>
       </startupnotify>
     </action>
   </item>
   <menu id="quickApps" />
+
+  <item label="run (W-r)">
+    <action name="Execute">
+      <command>gmrun</command>
+      <startupnotify>
+	<enabled>yes</enabled>
+      </startupnotify>
+    </action>
+  </item>
+  
   <separator label="Applications" />
   <menu id="apps-accessories-menu"/>
   <menu id="apps-editors-menu"/>
@@ -442,6 +461,7 @@
   <menu id="apps-multimedia-menu"/>
   <menu id="apps-term-menu"/>
   <menu id="apps-fileman-menu"/>
+
   <separator label="System" />
   <menu id="system-menu"/>
   <separator />

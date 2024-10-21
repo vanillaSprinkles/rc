@@ -43,6 +43,9 @@
 !*color14: #96CBFE
 !*color15: #F6F3E8
 
+!Emacs*Background: black
+!Emacs*Foreground: white
+
 ! tangoesque scheme
 !*background: #111111
 !*foreground: #babdb6
@@ -62,6 +65,7 @@
 !*color4:  #204a87
 !*color12: #3465a4
 *color4:  #0147FA
+!2019!*color4: #204a87
 *color12: #27408B
 !   3A5FCD  2E37FE
 ! Mangenta + DarkMangenta
@@ -74,8 +78,14 @@
 !*color7:  #cccccc
 !*color15: 
 
+!_2018!xterm*termName:                    xterm-256color
+!_2018!*term*termName:                    xterm-256color
+!xterm*termName:                    xterm-utf8
+!*term*termName:                    xterm-utf8
 xterm*termName:                    xterm-256color
 *term*termName:                    xterm-256color
+
+
 !putty*termName:                    xterm-256color
 !screen*termName:                   xterm-256color
 
